@@ -43,8 +43,8 @@ const navItems: MenuItem[] = [
     <RiContactsBook2Line />
   ),
       getItem(
-    <Link href="/dashboard/contact-setting">Setting</Link>,
-    "/dashboard/contact-setting",
+    <Link href="/dashboard/setting">Setting</Link>,
+    "/dashboard/setting",
     <CiSettings />
   ),
 ];

@@ -125,9 +125,9 @@ const SubscriptionTable: React.FC = () => {
                 {/* Add Listing */}
             <Button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
-          href="/dashboard/my-listing/add-membership-class"
+          href="/dashboard/subscription/add-subscription"
             >
-              + Add Member Ship Class
+              + Add Subscription
             </Button>
     </div>
 </div>
