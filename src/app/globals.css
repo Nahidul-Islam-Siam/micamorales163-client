@@ -58,6 +58,45 @@ input[type="number"] {
   -webkit-background-clip: text;
   background-clip: text;
 }
+
+
+
+
+/* <CHANGE> Custom calendar styling for react-calendar */
+.custom-calendar {
+  width: 100%;
+  max-width: 300px;
+  background: white;
+  border: none;
+  font-family: inherit;
+}
+
+.custom-calendar button {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.custom-calendar button:hover {
+  background-color: #fef3c7;
+}
+
+.custom-calendar button.react-calendar__tile--active {
+  background-color: #b45309;
+  color: white;
+}
+
+.custom-calendar button.react-calendar__tile--now {
+  background-color: #b45309;
+  color: white;
+}
+
+.custom-calendar__navigation {
+  margin-bottom: 1rem;
+}
+
+.custom-calendar__month-view__days__day {
+  padding: 0.5rem;
+}
 @keyframes l21 {
   100% {
     background-position: left;

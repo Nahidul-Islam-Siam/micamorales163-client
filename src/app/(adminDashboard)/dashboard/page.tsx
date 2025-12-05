@@ -7,7 +7,7 @@ import StatCards from "@/components/Dashboard/StatCards";
 import { Layout, Row, Col } from "antd";
 import { useState } from "react";
 
-const { Content, Header } = Layout;
+const { Content } = Layout;
 type TimeRange = "daily" | "weekly" | "monthly" | "yearly";
 export default function DashboardPage() {
 const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
