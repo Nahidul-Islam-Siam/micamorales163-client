@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import logo from "@/assets/logo/logo.png";
@@ -11,13 +11,16 @@ import Image from "next/image";
 import Link from "next/link";
 import AdminHeader from "../Navbar/DashboardHeader";
 
-
-
 const { Content, Sider } = Layout;
 
 export type MenuItem = Required<MenuProps>["items"][number];
 
-export function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode, children?: MenuItem[]): MenuItem {
+export function getItem(
+  label: React.ReactNode,
+  key: React.Key,
+  icon?: React.ReactNode,
+  children?: MenuItem[]
+): MenuItem {
   return { key, icon, children, label } as MenuItem;
 }
 
@@ -28,14 +31,19 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, menu }) => {
   const [open, setOpen] = useState<boolean>(false);
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
   const pathname = usePathname();
-  console.log(pathname);
 
-  const [selectedKey, setSelectedKey] = useState("/dashboard");
+  const [selectedKey, setSelectedKey] = useState(pathname);
+
+  // 🔥 FIX: Sync active menu based on URL
+  useEffect(() => {
+    setSelectedKey(pathname);
+  }, [pathname]);
 
   const handleClick = ({ key }: any) => {
     setSelectedKey(key);
@@ -51,7 +59,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, menu }) => {
         theme="dark"
         collapsed={false}
       >
-        <Link href="/" className="flex justify-center items-center py-3 border-b border-[#ffffff1a]">
+        <Link
+          href="/"
+          className="flex justify-center items-center py-3 border-b border-[#ffffff1a]"
+        >
           <Image className="w-[130px]" src={logo} alt="logo" />
         </Link>
 
@@ -70,7 +81,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, menu }) => {
       </Sider>
 
       <Layout>
-        <AdminHeader open={open} setOpen={setOpen} colorBgContainer={colorBgContainer} />
+        <AdminHeader
+          open={open}
+          setOpen={setOpen}
+          colorBgContainer={colorBgContainer}
+        />
 
         <Content
           className="!overflow-y-auto !overflow-x-hidden"

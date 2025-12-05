@@ -403,10 +403,10 @@ const AddAppointmentModal = ({
                       <button
                         key={time}
                         onClick={() => setSelectedTime(time)}
-                        className={`w-full rounded-md px-3 py-2  text-sm font-medium  ${
+                        className={`w-full rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                           selectedTime === time
-                            ? " border-2 border-[#A7997D]  text-[#A7997D]"
-                            : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            ? "bg-white border-2 border-[#A7997D] text-[#A7997D]"
+                            : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                         }`}
                       >
                         {time}

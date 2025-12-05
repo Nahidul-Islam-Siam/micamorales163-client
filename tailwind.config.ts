@@ -13,6 +13,7 @@ export default {
       fontFamily: {
         inter: ["var(--font-inter)"],
         arial: ["Arial", "sans-serif"],
+        roboto: ["Roboto", "sans-serif"],
       },
       colors: {
         black: "#000",
