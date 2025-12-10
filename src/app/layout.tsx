@@ -18,9 +18,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ARC (Allied Restoration Contractors)",
+  title: "LUMICA",
   description:
-    "Award Winning Service Allied Restoration Contractors, Repairs & Replacement",
+    "LUMICA - An Education Platform for Students and Teachers",
 };
 
 export default function RootLayout({

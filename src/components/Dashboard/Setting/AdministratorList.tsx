@@ -11,13 +11,13 @@ export default function AdministratorList() {
       key: "1",
       name: "Henry Jr.",
       email: "zain.anirudh@email.com",
-      avatar: "/admin-avatar-1.png",
+      avatar: "/avatar3.png",
     },
     {
       key: "2",
       name: "Henry Jr.",
       email: "zain.anirudh@email.com",
-      avatar: "/admin-avatar-2.png",
+   avatar: "/avatar3.png",
     },
   ];
 

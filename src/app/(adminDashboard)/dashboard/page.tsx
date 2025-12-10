@@ -10,19 +10,15 @@ import { useState } from "react";
 const { Content } = Layout;
 type TimeRange = "daily" | "weekly" | "monthly" | "yearly";
 export default function DashboardPage() {
-const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
+  const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
   const [currentPage, setCurrentPage] = useState(1);
 
   return (
     <Layout style={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
-
-
       <Content style={{ padding: "40px" }}>
         {/* Stat Cards */}
         <Row gutter={[24, 24]}>
-     
-            <StatCards />
-    
+          <StatCards />
         </Row>
 
         {/* Revenue Chart */}
@@ -35,7 +31,10 @@ const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
         {/* Booking Table */}
         <Row gutter={[24, 24]}>
           <Col span={24}>
-            <RecentBookingsTable currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            <RecentBookingsTable
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+            />
           </Col>
         </Row>
       </Content>

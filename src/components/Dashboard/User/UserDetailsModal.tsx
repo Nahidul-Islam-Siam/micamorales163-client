@@ -3,7 +3,8 @@
 import type React from "react"
 import { Modal, Row, Col, Table, Button, Avatar, Divider } from "antd"
 import type { ColumnsType } from "antd/es/table"
-
+import avatar from "@/assets/avatar/avatar2.png"
+import Image from "next/image"
 //
 // ---------- INTERFACES ----------
 //
@@ -128,7 +129,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
         <Col span={24}>
           <Row gutter={24}>
             <Col span={8}>
-              <Avatar size={160} src="https://via.placeholder.com/160" style={{ backgroundColor: "#87d068" }} />
+             <Image src={avatar} alt="Avatar" width={400} height={400}/>
             </Col>
             <Col span={16}>
               <h2 style={{ margin: "0 0 8px 0", fontSize: "1.5rem" }}>{user.name}</h2>

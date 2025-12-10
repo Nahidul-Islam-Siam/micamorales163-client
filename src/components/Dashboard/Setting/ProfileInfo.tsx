@@ -12,7 +12,7 @@ export default function ProfileInfo() {
     email: "gianpampeh@gmail.com",
     phone: "+88017467950",
     address: "Dhaka, Bangladesh",
-    avatar: "/avatar-placeholder.png", // Replace with real path
+    avatar: "/avatar3.png", // Replace with real path
   };
 
   return (
