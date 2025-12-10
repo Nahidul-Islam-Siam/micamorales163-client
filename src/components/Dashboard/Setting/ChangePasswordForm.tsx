@@ -1,67 +1,85 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client"
 
-import { Form, Input, Button } from "antd";
-import React from "react";
+import type React from "react"
 
-export default function ChangePasswordForm() {
-  const [form] = Form.useForm();
+import { useState } from "react"
 
-  const onFinish = (values: any) => {
-    console.log("Password changed:", values);
-    // Handle password update API call here
-  };
+export default function ChangePassword() {
+  const [passwords, setPasswords] = useState({
+    current: "",
+    new: "",
+    confirm: "",
+  })
+
+  const handleInputChange = (field: string, value: string) => {
+    setPasswords((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Handle password update logic here
+    console.log("Password update submitted")
+  }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
 
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          label="Current Password*"
-          name="currentPassword"
-          rules={[{ required: true, message: "Please enter current password" }]}
-        >
-          <Input.Password placeholder="Enter current password" className="h-10 rounded-lg border border-[rgba(0,0,0,0)] bg-[#F3F3F5]" />
-        </Form.Item>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-2">
+            Current Password
+          </label>
+          <input
+            type="password"
+            id="current-password"
+            value={passwords.current}
+            onChange={(e) => handleInputChange("current", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="••••••••"
+          />
+        </div>
 
-        <Form.Item
-          label="New Password*"
-          name="newPassword"
-          rules={[{ required: true, message: "Please enter new password" }]}
-        >
-          <Input.Password placeholder="Enter new password" className="h-10 rounded-lg border border-[rgba(0,0,0,0)] bg-[#F3F3F5]" />
-        </Form.Item>
+        <div>
+          <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
+            New Password
+          </label>
+          <input
+            type="password"
+            id="new-password"
+            value={passwords.new}
+            onChange={(e) => handleInputChange("new", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="••••••••"
+          />
+        </div>
 
-        <Form.Item
-          label="Confirm New Password*"
-          name="confirmPassword"
-          dependencies={['newPassword']}
-          rules={[
-            { required: true, message: "Please confirm your password" },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('newPassword') === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error('The two passwords do not match!'));
-              },
-            }),
-          ]}
-        >
-          <Input.Password placeholder="Confirm new password" className="h-10 rounded-lg border border-[rgba(0,0,0,0)] bg-[#F3F3F5]" />
-        </Form.Item>
+        <div>
+          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+            Confirm new Password
+          </label>
+          <input
+            type="password"
+            id="confirm-password"
+            value={passwords.confirm}
+            onChange={(e) => handleInputChange("confirm", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="••••••••"
+          />
+        </div>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="bg-[#A7997D] hover:bg-[#8d7c68]"
+        <div className="pt-2">
+          <button
+            type="submit"
+            className="bg-[#A7997D] cursor-pointer text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
           >
-            Update Password
-          </Button>
-        </Form.Item>
-      </Form>
+            Update password
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  )
 }
