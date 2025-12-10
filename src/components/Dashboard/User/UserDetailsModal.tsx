@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Modal, Row, Col, Table, Button, Avatar, Divider } from "antd"
+import { Modal, Row, Col, Table,  Divider } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import avatar from "@/assets/avatar/avatar2.png"
 import Image from "next/image"
@@ -107,14 +107,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
       open={visible}
       onCancel={onCancel}
       width={900}
-      footer={[
-        <Button key="cancel" onClick={onCancel}>
-          Cancel
-        </Button>,
-        <Button key="save" type="primary" onClick={onCancel}>
-          Save
-        </Button>,
-      ]}
+footer={null}
       styles={{
         header: {
           textAlign: "center",
@@ -162,7 +155,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
       <Divider />
 
       <div style={{ marginTop: "24px" }}>
-        <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "16px" }}>Order Summary</h3>
+        <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "16px",color:"#A7997D" }}>Order Summary</h3>
         <Table columns={columns} dataSource={orders} pagination={false} size="small" rowHoverable={true} />
       </div>
     </Modal>

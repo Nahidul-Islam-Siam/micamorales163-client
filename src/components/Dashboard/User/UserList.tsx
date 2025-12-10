@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Table, Dropdown, Button, Pagination } from "antd";
+import { Table, Dropdown, Button } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
 
 import UserDetailsModal from "./UserDetailsModal";
@@ -46,7 +46,6 @@ const mockData: Record<TabKey, User[]> = {
   ],
 };
 
-
 // --------------------
 // Main Component
 // --------------------
@@ -58,15 +57,13 @@ const UserList: React.FC = () => {
 
   const pageSize = 4;
 
-  // Memoized data for current tab
+  // Get data for current tab
   const displayedData = useMemo(() => mockData[activeTab], [activeTab]);
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset pagination on tab switch
   };
-
-  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const openDetailsModal = (user: User) => {
     setSelectedUser(user);
@@ -113,16 +110,14 @@ const UserList: React.FC = () => {
     },
   ];
 
-  // Paginate data manually
-  const paginatedData = displayedData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">User List</h2>
+    <div className="bg-white p-6 rounded-lg shadow-sm custom-recent-bookings-card">
+      {/* Header */}
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">User List</h2>
 
-      <div className="flex flex-col md:flex-row justify-between mb-6">
-        {/* Tabs */}
-        <div className="flex gap-4">
+      {/* Tabs & Add Button */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex gap-4 flex-wrap">
           {["membership", "signature", "event"].map((tab) => (
             <button
               key={tab}
@@ -133,61 +128,98 @@ const UserList: React.FC = () => {
                   : "text-gray-700 border border-gray-300 hover:bg-gray-100"
               }`}
             >
-              {tab === "membership" ? "Membership" : tab === "signature" ? "Signature Experience" : "Event"}
+              {tab === "membership"
+                ? "Membership"
+                : tab === "signature"
+                ? "Signature Experience"
+                : "Event"}
             </button>
           ))}
         </div>
 
-        {/* Add Subscription Button */}
         <Button
-          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
           href="/dashboard/subscription/add-subscription"
+          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
         >
           + Add Subscription
         </Button>
       </div>
 
-      {/* Table */}
-      <Table
-        dataSource={paginatedData}
-        columns={columns}
-        pagination={false}
-        rowClassName="hover:bg-gray-50"
-        scroll={{ x: "max-content" }}
-      />
-
-      {/* Pagination */}
-      <div className="flex justify-end mt-4">
-        <Pagination
-          current={currentPage}
-          pageSize={pageSize}
-          total={displayedData.length}
-          onChange={handlePageChange}
-          showSizeChanger={false}
-          itemRender={(page, type) => {
-            if (type === 'prev') return <Button type="text">‹</Button>;
-            if (type === 'next') return <Button type="text">›</Button>;
-            return (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`w-10 h-10 flex items-center justify-center rounded mx-1 text-sm font-medium transition-colors
-                  ${page === currentPage
-                    ? "bg-[#A7997D] text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-200"
-                  }`}
-              >
-                {page}
-              </button>
-            );
-          }}
+      {/* Table with Native Pagination */}
+      <div className="overflow-x-auto">
+        <Table
+          dataSource={displayedData}
+          columns={columns}
+         pagination={{
+  current: currentPage,
+  pageSize: pageSize,
+  total: displayedData.length,
+  onChange: (page) => setCurrentPage(page),
+  showSizeChanger: false,
+  position: ['bottomRight'],
+  hideOnSinglePage: false, // ← Changed for testing
+}}
+          rowClassName="hover:bg-gray-50"
+          scroll={{ x: "max-content" }}
+          className="w-full"
         />
       </div>
 
       {/* User Details Modal */}
       <UserDetailsModal visible={isModalOpen} onCancel={closeDetailsModal} user={selectedUser} />
+
+      {/* --- Global Style: Match Booking Table Exactly --- */}
+      <style jsx global>{`
+        /* Table Header */
+        .custom-recent-bookings-card .ant-table-thead > tr > th {
+          background-color: #d2d6d8 !important;
+          color: #333 !important;
+          font-weight: 600 !important;
+          border: 2px solid #d2d6d8 !important;
+          padding: 16px !important;
+        }
+
+        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
+          border-top-left-radius: 8px !important;
+        }
+
+        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
+          border-top-right-radius: 8px !important;
+        }
+
+        /* Table Body */
+        .custom-recent-bookings-card .ant-table-tbody > tr > td {
+          padding: 16px !important;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .custom-recent-bookings-card .ant-table-tbody > tr:hover > td {
+          background-color: #f9fafb !important;
+        }
+
+        /* Pagination Styling */
+        .custom-recent-bookings-card .ant-pagination-item-active {
+          background-color: #a7997d !important;
+          border-color: #a7997d !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item a,
+        .custom-recent-bookings-card .ant-pagination-item-link {
+          color: black !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item:hover a,
+        .custom-recent-bookings-card .ant-pagination-item-link:hover {
+          color: #8d7c68 !important;
+          border-color: #8d7c68 !important;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default UserList;  
+export default UserList;

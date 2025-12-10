@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Table, Dropdown, Menu, Button, Pagination } from "antd";
+import { Table, Dropdown, Menu, Button } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
 
 // --------------------
@@ -33,7 +33,11 @@ const mockData: Record<TabKey, Subscription[]> = {
     { key: "2", title: "8 Class Membership", numberOfClass: 8, numberOfCredit: 8, price: 80, validity: "30 days" },
     { key: "3", title: "Unlimited Monthly", numberOfClass: "Unlimited", numberOfCredit: "Unlimited", price: 200, validity: "30 days" },
     { key: "4", title: "16 Class Pack", numberOfClass: 16, numberOfCredit: 16, price: 150, validity: "60 days" },
-  
+    { key: "5", title: "24 Class Pack", numberOfClass: 24, numberOfCredit: 24, price: 250, validity: "90 days" },
+    { key: "6", title: "Unlimited Yearly", numberOfClass: "Unlimited", numberOfCredit: "Unlimited", price: 500, validity: "365 days" },
+    { key: "7", title: "Unlimited Lifetime", numberOfClass: "Unlimited", numberOfCredit: "Unlimited", price: 1000, validity: "Lifetime" },
+    { key: "8", title: "Unlimited Lifetime", numberOfClass: "Unlimited", numberOfCredit: "Unlimited", price: 1000, validity: "Lifetime" },
+    { key: "9", title: "Unlimited Lifetime", numberOfClass: "Unlimited", numberOfCredit: "Unlimited", price: 1000, validity: "Lifetime" },
   ],
   signature: [
     { key: "5", title: "Sunset Yoga Retreat", numberOfClass: 1, numberOfCredit: 1, price: 99, validity: "1 day" },
@@ -47,7 +51,6 @@ const mockData: Record<TabKey, Subscription[]> = {
     { key: "11", title: "Charity Fundraiser", numberOfClass: 1, numberOfCredit: 1, price: 100, validity: "Oct 15" },
     { key: "12", title: "VIP Wine Tasting", numberOfClass: 1, numberOfCredit: 1, price: 200, validity: "Monthly" },
   ],
-  
 };
 
 // --------------------
@@ -68,7 +71,6 @@ const SubscriptionTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 4;
 
-  // Memoized data for current tab
   const displayedData = useMemo(() => mockData[activeTab], [activeTab]);
 
   const handleTabChange = (tab: TabKey) => {
@@ -76,99 +78,178 @@ const SubscriptionTable: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (page: number) => setCurrentPage(page);
-
   const columns = [
-    { title: "Subscription Title", dataIndex: "title", key: "title", render: (text: string) => <span className="font-medium">{text}</span> },
+    {
+      title: "Subscription Title",
+      dataIndex: "title",
+      key: "title",
+      render: (text: string) => <span className="font-medium">{text}</span>,
+    },
     { title: "Number Of Class", dataIndex: "numberOfClass", key: "numberOfClass" },
     { title: "Number Of Credit", dataIndex: "numberOfCredit", key: "numberOfCredit" },
-    { title: "Price $", dataIndex: "price", key: "price", render: (price: number) => <span>${price}</span> },
+    {
+      title: "Price $",
+      dataIndex: "price",
+      key: "price",
+      render: (price: number) => <span>${price}</span>,
+    },
     { title: "Validity Time", dataIndex: "validity", key: "validity" },
     {
       title: "Action",
       key: "action",
       render: (_: any, record: Subscription) => (
-        <Dropdown overlay={<ActionMenu onEdit={() => console.log("Edit", record.key)} onDelete={() => console.log("Delete", record.key)} />} trigger={['click']}>
+        <Dropdown
+          overlay={
+            <ActionMenu
+              onEdit={() => console.log("Edit", record.key)}
+              onDelete={() => console.log("Delete", record.key)}
+            />
+          }
+          trigger={['click']}
+        >
           <Button type="text" icon={<MoreOutlined />} />
         </Dropdown>
-      )
-    }
+      ),
+    },
   ];
 
-  // Paginate data manually
-  const paginatedData = displayedData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Subscription List</h2>
+    <div className="bg-white p-6 rounded-lg shadow-sm custom-recent-bookings-card">
+      {/* Header */}
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Subscription List</h2>
 
-<div className="flex flex-col md:flex-row  justify-between">
-          {/* Tabs */}
-      <div className="flex gap-4 mb-6">
-        {["membership", "signature", "event"].map(tab => (
-          <button
-            key={tab}
-            onClick={() => handleTabChange(tab as TabKey)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === tab
-                ? "bg-[#A7997D] text-white border border-[#A7997D]"
-                : "text-gray-700 border border-gray-300 hover:bg-gray-100"
-            }`}
-          >
-            {tab === "membership" ? "Membership" : tab === "signature" ? "Signature Experience" : "Event"}
-          </button>
-        ))}
-      </div>
-
-      
-    <div>
-                {/* Add Listing */}
-            <Button
-              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
-          href="/dashboard/subscription/add-subscription"
+      {/* Tabs & Add Button */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex gap-4 flex-wrap">
+          {["membership", "signature", "event"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => handleTabChange(tab as TabKey)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === tab
+                  ? "bg-[#A7997D] text-white border border-[#A7997D]"
+                  : "text-gray-700 border border-gray-300 hover:bg-gray-100"
+              }`}
             >
-              + Add Subscription
-            </Button>
-    </div>
-</div>
+              {tab === "membership"
+                ? "Membership"
+                : tab === "signature"
+                ? "Signature Experience"
+                : "Event"}
+            </button>
+          ))}
+        </div>
+
+        <Button
+          href="/dashboard/subscription/add-subscription"
+          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
+        >
+          + Add Subscription
+        </Button>
+      </div>
 
       {/* Table */}
-      <Table
-        dataSource={paginatedData}
-        columns={columns}
-        pagination={false}
-        rowClassName="hover:bg-gray-50"
-        scroll={{ x: "max-content" }}
-      />
-
-      {/* Pagination */}
-      <div className="flex justify-end mt-4">
-        <Pagination
-          current={currentPage}
-          pageSize={pageSize}
-          total={displayedData.length}
-          onChange={handlePageChange}
-          showSizeChanger={false}
-          itemRender={(page, type) => {
-            if (type === 'prev') return <Button type="text">‹</Button>;
-            if (type === 'next') return <Button type="text">›</Button>;
-           return (
-  <button
-    key={page}
-    onClick={() => handlePageChange(page)}
-    className={`w-10  h-10 flex items-center justify-center rounded mx-1 text-sm font-medium transition-colors
-      ${page === currentPage
-        ? "bg-[#A7997D] text-white"
-        : "bg-white text-gray-700 hover:bg-gray-200"
-      }`}
-  >
-    {page}
-  </button>
-);
-
+      <div className="overflow-x-auto">
+        <Table
+          dataSource={displayedData}
+          columns={columns}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: displayedData.length,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
+            position: ['bottomRight'],
+            hideOnSinglePage: true,
           }}
+          rowClassName="hover:bg-gray-50"
+          scroll={{ x: "max-content" }}
+          className="w-full"
         />
       </div>
+
+      {/* --- Global Style Copied from Booking Table --- */}
+      <style jsx global>{`
+        /* Match exactly with RecentBookingsTable */
+
+        .custom-recent-bookings-card .ant-card-head {
+          display: flex !important;
+          justify-content: center !important;
+          flex-direction: column !important;
+          min-height: 40px !important;
+          margin-bottom: -1px;
+          background: transparent !important;
+          border-bottom: 1px solid #f0f0f0 !important;
+          border-radius: 10px 10px 0 0 !important;
+          padding: 0px 0px !important;
+        }
+
+        .custom-recent-bookings-card .ant-card-head-title {
+          color: #a7997d !important;
+          font-weight: 600 !important;
+          font-size: 18px !important;
+        }
+
+        /* Table Header */
+        .custom-recent-bookings-card .ant-table-thead > tr > th {
+          background-color: #d2d6d8 !important;
+          color: #333 !important;
+          font-weight: 600 !important;
+          border: 2px solid #d2d6d8 !important;
+          padding: 16px !important;
+        }
+
+        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
+          border-top-left-radius: 8px !important;
+        }
+
+        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
+          border-top-right-radius: 8px !important;
+        }
+
+        /* Table Body */
+        .custom-recent-bookings-card .ant-table-tbody > tr > td {
+          padding: 16px !important;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .custom-recent-bookings-card .ant-table-tbody > tr:hover > td {
+          background-color: #f9fafb !important;
+        }
+
+        /* Pagination Styling */
+        .custom-recent-bookings-card .ant-pagination-item-link,
+        .custom-recent-bookings-card .ant-pagination-item a {
+          color: black !important;
+          border-color: #a7997d !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item-active {
+          background-color: #a7997d !important;
+          border-color: #a7997d !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-item:hover a,
+        .custom-recent-bookings-card .ant-pagination-item-link:hover {
+          color: #8d7c68 !important;
+          border-color: #8d7c68 !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-prev a,
+        .custom-recent-bookings-card .ant-pagination-next a {
+          color: black !important;
+        }
+
+        .custom-recent-bookings-card .ant-pagination-prev button:disabled,
+        .custom-recent-bookings-card .ant-pagination-next button:disabled {
+          border-color: #ddd !important;
+          color: #ccc !important;
+        }
+      `}</style>
     </div>
   );
 };

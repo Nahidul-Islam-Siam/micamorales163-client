@@ -166,15 +166,6 @@ export default function RecentBookingsTable({
             >
               Recent Bookings
             </span>
-
-            {/* Right: Add Product Button */}
-            <button
-              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-2 rounded-[14px] text-sm font-medium flex items-center space-x-1 transition-colors"
-              onClick={() => alert('Add new booking!')}
-            >
-              <span>+</span>
-              <span>Add Booking</span>
-            </button>
           </div>
         }
         style={{

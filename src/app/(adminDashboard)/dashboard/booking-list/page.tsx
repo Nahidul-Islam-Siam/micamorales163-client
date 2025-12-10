@@ -8,7 +8,6 @@ import {
   Button,
   Modal,
   Typography,
-
 } from "antd";
 import { EllipsisOutlined } from "@ant-design/icons";
 import { useState } from "react";
@@ -38,17 +37,9 @@ const bookingData: BookingRecord[] = Array.from({ length: 12 }, (_, i) => ({
   payment: ["Card", "Bank", "Credit"][i % 3] as BookingRecord["payment"],
 }));
 
-/** Add Modal Props */
-
-
-
 export default function BookingListTable() {
-  // ⬇️ FIX: Local pagination state (NOT props)
   const [currentPage, setCurrentPage] = useState(1);
-
-  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(
-    null
-  );
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
@@ -114,6 +105,7 @@ export default function BookingListTable() {
               padding: "4px 8px",
               borderRadius: "20px",
               fontSize: "11px",
+              whiteSpace: "nowrap",
             }}
           >
             {text}
@@ -139,6 +131,7 @@ export default function BookingListTable() {
             ],
           }}
           placement="bottomRight"
+          trigger={["click"]}
         >
           <Button type="text" icon={<EllipsisOutlined />} />
         </Dropdown>
@@ -149,37 +142,23 @@ export default function BookingListTable() {
   return (
     <>
       <Card
+        className="custom-recent-bookings-card"
         title={
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "18px",
-                color: "#A7997D",
-                fontWeight: "600",
-              }}
-            >
-              Recent Bookings
-            </span>
-
+          <div className="flex justify-between items-center w-full">
+            <span className="text-[#A7997D] font-semibold text-lg">Recent Bookings</span>
             <button
-              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-2 rounded-[14px] text-sm font-medium"
+              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-2 rounded-[14px] text-sm font-medium transition-colors"
               onClick={() => setIsAddModalVisible(true)}
             >
               + Add Booking
             </button>
           </div>
         }
-        style={{ border: "none", backgroundColor: "transparent" }}
-        bodyStyle={{ padding: 0 }}
+        bordered={false}
+        style={{ backgroundColor: 'transparent', boxShadow: 'none', border: 'none' }}
+        bodyStyle={{ padding: 0, backgroundColor: 'transparent' }}
       >
-        <div style={{ overflowX: "auto", width: "100%" }}>
+        <div className="overflow-x-auto">
           <Table
             columns={bookingColumns}
             dataSource={bookingData}
@@ -189,13 +168,84 @@ export default function BookingListTable() {
               total: bookingData.length,
               onChange: setCurrentPage,
               showSizeChanger: false,
-              position: ["bottomRight"],
+              position: ['bottomRight'],
               hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
-            style={{ marginTop: "20px" }}
+            className="mt-5"
           />
         </div>
+
+        {/* --- Global Styles Copied from RecentBookingsTable --- */}
+        <style jsx global>{`
+          .custom-recent-bookings-card .ant-card-head {
+            display: flex !important;
+            justify-content: center !important;
+            flex-direction: column !important;
+            min-height: 40px !important;
+            margin-bottom: -1px;
+            background: transparent !important;
+            border-bottom: 1px solid #f0f0f0 !important;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 0px 0px !important;
+          }
+
+          .custom-recent-bookings-card .ant-card-head-title {
+            color: #a7997d !important;
+            font-weight: 600 !important;
+            font-size: 18px !important;
+          }
+
+          /* Table Header */
+          .custom-recent-bookings-card .ant-table-thead > tr > th {
+            background-color: #d2d6d8 !important;
+            color: #333 !important;
+            font-weight: 600 !important;
+            border: 2px solid #d2d6d8 !important;
+            padding: 16px 16px;
+          }
+
+          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
+            border-top-left-radius: 8px !important;
+          }
+
+          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
+            border-top-right-radius: 8px !important;
+          }
+
+          /* Pagination Styling */
+          .custom-recent-bookings-card .ant-pagination-item-link,
+          .custom-recent-bookings-card .ant-pagination-item a {
+            color: black !important;
+            border-color: #a7997d !important;
+          }
+
+          .custom-recent-bookings-card .ant-pagination-item-active {
+            background-color: #a7997d !important;
+            border-color: #a7997d !important;
+          }
+
+          .custom-recent-bookings-card .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .custom-recent-bookings-card .ant-pagination-item:hover a,
+          .custom-recent-bookings-card .ant-pagination-item-link:hover {
+            color: #5e5e5e !important;
+            border-color: #5e5e5e !important;
+          }
+
+          .custom-recent-bookings-card .ant-pagination-prev a,
+          .custom-recent-bookings-card .ant-pagination-next a {
+            color: black !important;
+          }
+
+          .custom-recent-bookings-card .ant-pagination-prev button:disabled,
+          .custom-recent-bookings-card .ant-pagination-next button:disabled {
+            border-color: #ddd !important;
+            color: #ccc !important;
+          }
+        `}</style>
       </Card>
 
       {/* View Booking Details Modal */}
@@ -208,44 +258,38 @@ export default function BookingListTable() {
         width={600}
       >
         {selectedBooking && (
-          <div style={{ padding: "20px", lineHeight: "2" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="space-y-3 p-5 text-sm">
+            <div className="flex justify-between">
               <Text strong>Booking ID</Text>
               <Text>{selectedBooking.id}</Text>
             </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="flex justify-between">
               <Text strong>Booked By</Text>
               <Text>{selectedBooking.bookedBy}</Text>
             </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="flex justify-between">
               <Text strong>Email</Text>
               <Text>{selectedBooking.email}</Text>
             </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="flex justify-between">
               <Text strong>Last Class Name</Text>
               <Text>{selectedBooking.className}</Text>
             </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="flex justify-between">
               <Text strong>Date & Time</Text>
               <Text>{selectedBooking.dateTime}</Text>
             </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="flex justify-between items-center">
               <Text strong>Payment</Text>
               <span
                 style={{
                   backgroundColor:
-                    selectedBooking.payment === "Credit"
-                      ? "#4CAF50"
-                      : "#A7997D40",
-                  color:
-                    selectedBooking.payment === "Credit" ? "white" : "#4E4E4A",
-                  padding: "4px 8px",
-                  borderRadius: "20px",
+                    selectedBooking.payment === 'Credit' ? '#4CAF50' : '#A7997D40',
+                  color: selectedBooking.payment === 'Credit' ? 'white' : '#4E4E4A',
+                  padding: '4px 8px',
+                  borderRadius: '20px',
+                  fontSize: '11px',
+                  fontWeight: 600,
                 }}
               >
                 {selectedBooking.payment}

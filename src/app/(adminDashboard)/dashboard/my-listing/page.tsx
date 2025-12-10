@@ -47,9 +47,7 @@ const listingData: ListingRecord[] = Array.from({ length: 6 }, (_, i) => ({
 /** -------- MAIN COMPONENT ---------- **/
 export default function MyListingTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(
-    null
-  );
+  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -61,13 +59,10 @@ export default function MyListingTable() {
 
   /** -------- FILTERING ---------- **/
   const filteredData = listingData.filter((item) => {
-    const matchesFilter =
-      activeFilter === "All" || item.status === activeFilter;
-
+    const matchesFilter = activeFilter === "All" || item.status === activeFilter;
     const matchesSearch =
       item.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-
     return matchesFilter && matchesSearch;
   });
 
@@ -94,7 +89,6 @@ export default function MyListingTable() {
         </div>
       ),
     },
-
     {
       title: "Instructor",
       dataIndex: "instructor",
@@ -104,7 +98,6 @@ export default function MyListingTable() {
         <span className="text-gray-700 text-sm">{text}</span>
       ),
     },
-
     {
       title: "Space",
       dataIndex: "space",
@@ -114,23 +107,17 @@ export default function MyListingTable() {
         <span className="text-gray-700 text-sm">{text}</span>
       ),
     },
-
     {
       title: "Remaining Space",
       dataIndex: "remainingSpace",
       key: "remainingSpace",
       width: 120,
       render: (text: number) => (
-        <span
-          className={`text-sm ${
-            text === 0 ? "text-red-500" : "text-green-600"
-          }`}
-        >
+        <span className={`text-sm ${text === 0 ? "text-red-500" : "text-green-600"}`}>
           {text}
         </span>
       ),
     },
-
     {
       title: "Booked",
       dataIndex: "booked",
@@ -140,7 +127,6 @@ export default function MyListingTable() {
         <span className="text-gray-700 text-sm">{text}</span>
       ),
     },
-
     {
       title: "Status",
       dataIndex: "status",
@@ -148,23 +134,10 @@ export default function MyListingTable() {
       width: 100,
       render: (status: ListingRecord["status"]) => {
         const styles = {
-          Draft: {
-            bg: "#A7997D40",
-            color: "#4E4E4A",
-            border: "#A7997D",
-          },
-          Publish: {
-            bg: "#4CAF5020",
-            color: "#4CAF50",
-            border: "#4CAF50",
-          },
-          Upcoming: {
-            bg: "#FF980020",
-            color: "#FF9800",
-            border: "#FF9800",
-          },
+          Draft: { bg: "#A7997D40", color: "#4E4E4A", border: "#A7997D" },
+          Publish: { bg: "#4CAF5020", color: "#4CAF50", border: "#4CAF50" },
+          Upcoming: { bg: "#FF980020", color: "#FF9800", border: "#FF9800" },
         };
-
         const s = styles[status];
 
         return (
@@ -184,7 +157,6 @@ export default function MyListingTable() {
         );
       },
     },
-
     {
       title: "Action",
       key: "action",
@@ -193,25 +165,13 @@ export default function MyListingTable() {
         <Dropdown
           menu={{
             items: [
-              {
-                key: "1",
-                label: "Edit",
-                onClick: () => console.log("Edit clicked"),
-              },
-              {
-                key: "2",
-                label: "Details",
-                onClick: () => showListingDetails(record),
-              },
-              {
-                key: "3",
-                label: "Delete",
-                danger: true,
-                onClick: () => console.log("Delete clicked"),
-              },
+              { key: "1", label: "Edit", onClick: () => console.log("Edit clicked") },
+              { key: "2", label: "Details", onClick: () => showListingDetails(record) },
+              { key: "3", label: "Delete", danger: true },
             ],
           }}
           placement="bottomRight"
+          trigger={["click"]}
         >
           <Button type="text" icon={<EllipsisOutlined />} />
         </Dropdown>
@@ -221,11 +181,14 @@ export default function MyListingTable() {
 
   return (
     <>
+      {/* Main Container */}
       <Card
-        style={{ border: "none", backgroundColor: "transparent" }}
+        className="custom-my-listing-table"
+        bordered={false}
+        style={{ backgroundColor: 'transparent', border: 'none' }}
         bodyStyle={{ padding: 0 }}
       >
-        {/* ---------- HEADER ---------- */}
+        {/* Header */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-[#4E4E4A]">My Listing</h2>
 
@@ -241,36 +204,34 @@ export default function MyListingTable() {
 
             {/* Filters */}
             <div className="flex gap-2">
-              {["All", "Membership", "Signature Experience", "Event"].map(
-                (filter) => (
-                  <Button
-                    key={filter}
-                    type={activeFilter === filter ? "primary" : "default"}
-                    onClick={() => setActiveFilter(filter)}
-                    className={`px-4 py-1 rounded-full text-sm ${
-                      activeFilter === filter
-                        ? "bg-[#A7997D] text-white"
-                        : "border border-[#A7997D] text-[#A7997D]"
-                    }`}
-                  >
-                    {filter}
-                  </Button>
-                )
-              )}
+              {["All", "Membership", "Signature Experience", "Event"].map((filter) => (
+                <Button
+                  key={filter}
+                  type={activeFilter === filter ? "primary" : "default"}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-4 py-1 rounded-full text-sm ${
+                    activeFilter === filter
+                      ? "bg-[#A7997D] text-white"
+                      : "border border-[#A7997D] text-[#A7997D]"
+                  }`}
+                >
+                  {filter}
+                </Button>
+              ))}
             </div>
 
-            {/* Add Listing */}
+            {/* Add Class */}
             <Button
+              href="/dashboard/my-listing/add-membership-class"
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
-          href="/dashboard/my-listing/add-membership-class"
             >
               + Add Member Ship Class
             </Button>
           </div>
         </div>
 
-        {/* ---------- TABLE ---------- */}
-        <div className="bg-white rounded-lg shadow-sm">
+        {/* Table Wrapper */}
+        <div className="overflow-x-auto">
           <Table
             columns={listingColumns}
             dataSource={filteredData}
@@ -280,69 +241,86 @@ export default function MyListingTable() {
               total: filteredData.length,
               onChange: setCurrentPage,
               showSizeChanger: false,
-              position: ["bottomRight"],
-              itemRender: (current, type, original) => {
-                if (type === "prev")
-                  return (
-                    <Button type="text">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="24"
-                        viewBox="0 0 12 24"
-                        fill="none"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          clip-rule="evenodd"
-                          d="M1.84306 12.711L7.50006 18.368L8.91406 16.954L3.96406 12.004L8.91406 7.054L7.50006 5.64L1.84306 11.297C1.65559 11.4845 1.55028 11.7388 1.55028 12.004C1.55028 12.2692 1.65559 12.5235 1.84306 12.711Z"
-                          fill="#4E4E4A"
-                        />
-                      </svg>
-                    </Button>
-                  );
-                if (type === "next")
-                  return (
-                    <Button type="text">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="24"
-                        viewBox="0 0 12 24"
-                        fill="none"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          clip-rule="evenodd"
-                          d="M10.1569 12.711L4.49994 18.368L3.08594 16.954L8.03594 12.004L3.08594 7.054L4.49994 5.64L10.1569 11.297C10.3444 11.4845 10.4497 11.7388 10.4497 12.004C10.4497 12.2692 10.3444 12.5235 10.1569 12.711Z"
-                          fill="#4E4E4A"
-                        />
-                      </svg>
-                    </Button>
-                  );
-                if (type === "page")
-                  return (
-                    <Button
-                      type={current === currentPage ? "primary" : "text"}
-                      className={`px-3 py-1 rounded mx-1 ${
-                        current === currentPage
-                          ? "bg-[#A7997D] text-white"
-                          : "text-[#4E4E4A]"
-                      }`}
-                    >
-                      {current}
-                    </Button>
-                  );
-
-                return original;
-              },
+              position: ['bottomRight'],
+              hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
           />
         </div>
+
+        {/* --- Global Styles (Copied from RecentBookingsTable) --- */}
+        <style jsx global>{`
+          .custom-my-listing-table .ant-card-head {
+            display: flex !important;
+            justify-content: center !important;
+            flex-direction: column !important;
+            min-height: 40px !important;
+            margin-bottom: -1px;
+            background: transparent !important;
+            border-bottom: 1px solid #f0f0f0 !important;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 0px 0px !important;
+          }
+
+          .custom-my-listing-table .ant-card-head-title {
+            color: #a7997d !important;
+            font-weight: 600 !important;
+            font-size: 18px !important;
+          }
+
+          /* Table Header */
+          .custom-my-listing-table .ant-table-thead > tr > th {
+            background-color: #d2d6d8 !important;
+            color: #333 !important;
+            font-weight: 600 !important;
+            border: 2px solid #d2d6d8 !important;
+            padding: 16px !important;
+          }
+
+          .custom-my-listing-table .ant-table-thead > tr:first-child > th:first-child {
+            border-top-left-radius: 8px !important;
+          }
+
+          .custom-my-listing-table .ant-table-thead > tr:first-child > th:last-child {
+            border-top-right-radius: 8px !important;
+          }
+
+          /* Pagination Styling */
+          .custom-my-listing-table .ant-pagination-item-link,
+          .custom-my-listing-table .ant-pagination-item a {
+            color: black !important;
+            border-color: #a7997d !important;
+          }
+
+          .custom-my-listing-table .ant-pagination-item-active {
+            background-color: #a7997d !important;
+            border-color: #a7997d !important;
+          }
+
+          .custom-my-listing-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .custom-my-listing-table .ant-pagination-item:hover a,
+          .custom-my-listing-table .ant-pagination-item-link:hover {
+            color: #5e5e5e !important;
+            border-color: #5e5e5e !important;
+          }
+
+          .custom-my-listing-table .ant-pagination-prev a,
+          .custom-my-listing-table .ant-pagination-next a {
+            color: black !important;
+          }
+
+          .custom-my-listing-table .ant-pagination-prev button:disabled,
+          .custom-my-listing-table .ant-pagination-next button:disabled {
+            border-color: #ddd !important;
+            color: #ccc !important;
+          }
+        `}</style>
       </Card>
 
-      {/* ---------- MODAL ---------- */}
+      {/* Details Modal */}
       <Modal
         title="Listing Details"
         open={isModalVisible}
@@ -352,7 +330,7 @@ export default function MyListingTable() {
         width={600}
       >
         {selectedListing && (
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 text-sm">
             <div className="flex items-center gap-4">
               <Image
                 width={64}
@@ -363,9 +341,7 @@ export default function MyListingTable() {
               />
               <div>
                 <Text strong>{selectedListing.className}</Text>
-                <div className="text-sm text-gray-500">
-                  ID: {selectedListing.id}
-                </div>
+                <div className="text-gray-500">ID: {selectedListing.id}</div>
               </div>
             </div>
 
@@ -381,8 +357,7 @@ export default function MyListingTable() {
               </div>
             ))}
 
-            {/* Status */}
-            <div className="flex justify-between text-gray-700">
+            <div className="flex justify-between">
               <Text strong>Status</Text>
               <Tag
                 style={{
@@ -405,6 +380,8 @@ export default function MyListingTable() {
                       ? "1px solid #FF9800"
                       : "1px solid #A7997D",
                   borderRadius: "16px",
+                  padding: "2px 8px",
+                  fontSize: "12px",
                 }}
               >
                 {selectedListing.status}

@@ -6,14 +6,44 @@ import {
   FiMail as MailIcon,
   FiMapPin as MapPinIcon,
 } from "react-icons/fi";
+import { useState } from "react";
 
 export default function UserProfile() {
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Mock data for the form (in a real app, this would come from state or props)
+  const [formData, setFormData] = useState({
+    name: "Joohn Emily Carter",
+    email: "giangbanganh@gmail.com",
+    contact: "+84 0373467950",
+    address: "Dhaka, Bangladesh",
+    introduction:
+      "Lorem ipsum as their for default model text, and a search for 'lorem ipsum' will uncover many web for site.",
+  });
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    console.log("Saving profile:", formData);
+    setIsEditing(false); // Close modal after save
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 md:p-12 shadow-sm relative">
       {/* Edit Icon - Top Right */}
       <button
         className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
         aria-label="Edit profile"
+        onClick={() => setIsEditing(true)}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -35,7 +65,7 @@ export default function UserProfile() {
         {/* Left Side: Avatar */}
         <div className="flex-shrink-0">
           <Image
-            src="/images/avatar.png" // Replace with actual image path
+            src="/avatar3.png" // Replace with actual image path
             alt="Joohn Emily Carter"
             width={100}
             height={100}
@@ -92,6 +122,115 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div
+            className="bg-[#FAFBFB] rounded-2xl shadow-xl max-w-4xl w-full p-4 py-9 relative"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setIsEditing(false);
+            }}
+            tabIndex={0}
+          >
+            <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+              Edit Profile
+            </h3>
+
+            {/* Two-column grid for Name, Email, Contact, Address */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
+                  placeholder="Enter Name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Contact
+                </label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleInputChange}
+                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
+                  placeholder="Enter Contact"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
+                  placeholder="Enter Email"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
+                  placeholder="Enter Address"
+                />
+              </div>
+            </div>
+
+            {/* Full-width Introduction Field */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Introduction
+              </label>
+              <textarea
+                name="introduction"
+                value={formData.introduction}
+                onChange={handleInputChange}
+                rows={4}
+                className="w-full px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D] rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB]"
+                placeholder="Enter Introduction"
+              />
+            </div>
+
+            {/* Centered Buttons */}
+            <div className="flex justify-center space-x-8">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A7997D]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="px-4 py-2 bg-[#A7997D] border border-transparent rounded-md text-sm font-medium text-white hover:bg-[#8d7c68] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A7997D]"
+              >
+                Change
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
