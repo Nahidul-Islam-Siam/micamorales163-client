@@ -188,15 +188,12 @@ const ContactUsPage: React.FC = () => {
           </div>
           <div className="flex justify-between items-center">
             <Button
-              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-2 rounded-md font-medium"
+              className="bg-[#A7997D] hover:bg-[#8d7c68] text-white justify-center flex items-center px-4 py-2 rounded-md font-medium"
               onClick={() => console.log('Reply to:', selectedMessage?.key)}
             >
               Reply
             </Button>
-            {/* Floating Mail Icon */}
-            <div className="absolute bottom-4 right-4 w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
-              <span className="text-lg">✉️</span>
-            </div>
+       
           </div>
         </div>
       </Modal>
