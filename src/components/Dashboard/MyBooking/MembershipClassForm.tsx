@@ -5,7 +5,7 @@ import { Form, Input, Button, Select, Upload, InputNumber } from "antd"
 import { UploadOutlined, PlusOutlined, CalendarOutlined, CloseOutlined } from "@ant-design/icons"
 import { useState } from "react"
 // import DateTimePickerModal from "./date-time-picker-modal"
-import type { Dayjs } from "dayjs"
+// import type { Dayjs } from "dayjs"
 import DateTimePickerModal from "./DateTimePickerModal"
 
 interface TimeSlotData {
@@ -24,14 +24,14 @@ export default function MembershipClassForm() {
     setModalVisible(true)
   }
 
-  const handleModalConfirm = (date: Dayjs, startTime: string, endTime: string) => {
-    const newSlot: TimeSlotData = {
-      id: Date.now(),
-      date: date.format("YYYY-MM-DD"),
-      startTime,
-      endTime,
-    }
-    setTimeSlots([...timeSlots, newSlot])
+  const handleModalConfirm = (schedules: any[]) => {
+    const newSlots: TimeSlotData[] = schedules.map((schedule) => ({
+      id: Date.now() + Math.random(),
+      date: typeof schedule.date === 'string' ? schedule.date : schedule.date.format("YYYY-MM-DD"),
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+    }))
+    setTimeSlots([...timeSlots, ...newSlots])
   }
 
   const handleRemoveTimeSlot = (id: number) => {

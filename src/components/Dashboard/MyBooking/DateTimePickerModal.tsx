@@ -107,7 +107,7 @@ export default function DateTimePickerModal({
 
   // Generate unique ID
   const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2)
+    return Date.now().toString(36) + Math.random().toString(36).slice(2)
   }
 
   // Format time display
@@ -123,7 +123,7 @@ export default function DateTimePickerModal({
   const parseTime = (timeStr: string) => {
     const match = timeStr.match(/(\d+):(\d+)(am|pm)/i)
     if (!match) return null
-    let [, h, m, p] = match
+    const [, h, m, p] = match
     let hour = parseInt(h)
     if (p.toLowerCase() === 'pm' && hour < 12) hour += 12
     if (p.toLowerCase() === 'am' && hour === 12) hour = 0
@@ -191,7 +191,7 @@ export default function DateTimePickerModal({
 
     // End period logic
     let endPeriod = timePeriod
-    let endHourNum = parseInt(endHour)
+    const endHourNum = parseInt(endHour)
     let startHourNum = parseInt(startHour)
     if (timePeriod === "AM" && startHourNum === 12) startHourNum = 0
     if (timePeriod === "PM" && startHourNum < 12) startHourNum += 12
@@ -292,56 +292,75 @@ export default function DateTimePickerModal({
   }
 
   // Full cell render with dot indicators and double-click
-  const fullCellRender = (value: Dayjs) => {
-    const dateKey = value.format('YYYY-MM-DD')
-    const hasSchedule = dateSchedules[dateKey]?.length > 0
-    const isSelected = selectedDates.some(d => d.format('YYYY-MM-DD') === dateKey)
+ const fullCellRender = (value: Dayjs) => {
+  const dateKey = value.format('YYYY-MM-DD')
+  const hasSchedule = dateSchedules[dateKey]?.length > 0
+  const isSelected = selectedDates.some(d => d.format('YYYY-MM-DD') === dateKey)
 
-    return (
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        cursor: 'pointer',
+      }}
+      onClick={() => handleDateSelect(value)}
+      onDoubleClick={(e) => {
+        e.preventDefault()
+        handleDateDoubleClick(value)
+      }}
+    >
+      {/* Show the date number (1, 2, 3...) */}
       <div
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: '100%',
-          height: '100%',
-          position: 'relative',
-          cursor: 'pointer',
-        }}
-        onClick={() => handleDateSelect(value)}
-        onDoubleClick={(e) => {
-          e.preventDefault()
-          handleDateDoubleClick(value)
+          textAlign: 'center',
+          fontSize: '14px',
+          fontWeight: 'normal',
+          color: '#000',
+          padding: '4px 0',
+          pointerEvents: 'none', // Allow clicks through to parent
         }}
       >
-        {/* Small colored dots for each time slot */}
-        {hasSchedule && (
-          <div style={{ position: 'absolute', top: '2px', left: '2px', display: 'flex', gap: '1px' }}>
-            {dateSchedules[dateKey].map((slot) => (
-              <div
-                key={slot.id}
-                style={{
-                  width: '4px',
-                  height: '4px',
-                  backgroundColor: slot.color,
-                  borderRadius: '50%',
-                }}
-              />
-            ))}
-          </div>
-        )}
-        {/* Faint overlay for selected but not scheduled */}
-        {isSelected && !hasSchedule && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: '4px',
-              background: '#333',
-              opacity: 0.2,
-            }}
-          />
-        )}
+        {value.date()}
       </div>
-    )
-  }
+
+      {/* Small colored dots for each time slot */}
+      {hasSchedule && (
+        <div style={{ position: 'absolute', top: '26px', left: '2px', display: 'flex', gap: '1px' }}>
+          {dateSchedules[dateKey].map((slot) => (
+            <div
+              key={slot.id}
+              style={{
+                width: '4px',
+                height: '4px',
+                backgroundColor: slot.color,
+                borderRadius: '50%',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Faint overlay for selected but not scheduled */}
+      {isSelected && !hasSchedule && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '4px',
+            background: '#333',
+            opacity: 0.2,
+          }}
+        />
+      )}
+    </div>
+  )
+}
 
   // Confirm
   const handleConfirm = () => {
@@ -545,7 +564,7 @@ export default function DateTimePickerModal({
                         >
                           <div>
                             <Text strong>{slot.startTime} to {slot.endTime}</Text>
-                            {slot.isCustom && <Tag color="blue" size="small" style={{ marginLeft: 8 }}>Custom</Tag>}
+                            {slot.isCustom && <Tag color="blue" style={{ marginLeft: 8 }}>Custom</Tag>}
                           </div>
                           <Button
                             type="text"
