@@ -6,6 +6,7 @@ import { Table, Dropdown, Button } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
 
 import UserDetailsModal from "./UserDetailsModal";
+import Swal from "sweetalert2";
 
 // --------------------
 // Interfaces
@@ -75,6 +76,28 @@ const UserList: React.FC = () => {
     setSelectedUser(null);
   };
 
+  const handleDesable = (user: User) => {
+Swal.fire({
+  title: 'Are you sure?',
+  text: "You won't be able to revert this!",
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonColor: '#d33',
+  cancelButtonColor: '#3085d6',
+  confirmButtonText: 'Yes, disable it!',
+  cancelButtonText: 'Cancel',
+}).then((result) => {
+  if (result.isConfirmed) {
+    // ✅ Perform delete logic here
+    // e.g., call your API: deleteService(record.id)
+    console.log('Disabling user:', user.key);
+    
+    // Optionally show success message
+    Swal.fire('Disabled!', 'The user has been disabled.', 'success');
+  }
+})
+  };
+
   const columns = [
     { title: "User Id", dataIndex: "userId", key: "userId" },
     { title: "Name", dataIndex: "name", key: "name" },
@@ -93,7 +116,7 @@ const UserList: React.FC = () => {
                 key: 'disable',
                 danger: true,
                 label: 'Disable',
-                onClick: () => console.log('Disable user:', record.key),
+                onClick: () => handleDesable(record),
               },
               {
                 key: 'details',

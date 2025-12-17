@@ -7,8 +7,9 @@ import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Domain Name",
-  description: "Website slogan",
+  title: "LUMICA",
+  description:
+    "LUMICA - An Education Platform for Students and Teachers",
 };
 
 export default function RootLayout({

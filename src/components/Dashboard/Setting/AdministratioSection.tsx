@@ -1,8 +1,8 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from "next/image";
-import { Modal } from "antd";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 export default function AdministratorSection() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -53,6 +53,7 @@ export default function AdministratorSection() {
     });
   };
 
+
   const handleAssign = () => {
     // Simple validation
     if (
@@ -88,16 +89,25 @@ export default function AdministratorSection() {
   };
 
   const handleRemoveClick = (admin: any) => {
-    Modal.confirm({
-      title: "Do you want to remove?",
-      okText: "Yes",
-      cancelText: "No",
-      onOk: () => alert(`Removed: ${admin.name}`),
-      okButtonProps: { className: "bg-blue-600 hover:bg-blue-700 text-white" },
-      cancelButtonProps: {
-        className: "border-gray-300 text-gray-700 hover:bg-gray-50",
-      },
-    });
+Swal.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "Yes, delete it!",
+  cancelButtonText: "Cancel",
+}).then((result) => {
+  if (result.isConfirmed) {
+    // ✅ Perform delete logic here
+    // e.g., call your API: deleteService(record.id)
+    console.log("Deleting record:", admin.key);
+    
+    // Optionally show success message
+    Swal.fire("Deleted!", "The record has been deleted.", "success");
+  }
+})
   };
 
   return (

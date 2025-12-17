@@ -15,6 +15,7 @@ import { EllipsisOutlined, SearchOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import Image, { StaticImageData } from "next/image";
 import imageUrl from "@/assets/table/r.png";
+import Swal from "sweetalert2";
 
 const { Text } = Typography;
 
@@ -55,6 +56,28 @@ export default function MyListingTable() {
   const showListingDetails = (record: ListingRecord): void => {
     setSelectedListing(record);
     setIsModalVisible(true);
+  };
+
+  const handleDelete = (record: any): void => {
+Swal.fire({
+  title: 'Are you sure?',
+  text: "You won't be able to revert this!",
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonColor: '#d33',
+  cancelButtonColor: '#3085d6',
+  confirmButtonText: 'Yes, delete it!',
+  cancelButtonText: 'Cancel',
+}).then((result) => {
+  if (result.isConfirmed) {
+    // ✅ Perform delete logic here
+    // e.g., call your API: deleteService(record.id)
+    console.log('Deleting record:', record.id);
+    
+    // Optionally show success message
+    Swal.fire('Deleted!', 'The record has been deleted.', 'success');
+  }
+})
   };
 
   /** -------- FILTERING ---------- **/
@@ -167,7 +190,7 @@ export default function MyListingTable() {
             items: [
               { key: "1", label: "Edit", onClick: () => console.log("Edit clicked") },
               { key: "2", label: "Details", onClick: () => showListingDetails(record) },
-              { key: "3", label: "Delete", danger: true },
+             { key:"3",label:"Delete",onClick:()=>handleDelete(record) }
             ],
           }}
           placement="bottomRight"

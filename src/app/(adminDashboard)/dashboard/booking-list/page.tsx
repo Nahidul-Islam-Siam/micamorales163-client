@@ -12,6 +12,7 @@ import {
 import { EllipsisOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import AddAppointmentModal from "@/components/Dashboard/MyBooking/AddAppointmentModal";
+import Swal from "sweetalert2";
 
 const { Text } = Typography;
 
@@ -47,6 +48,28 @@ export default function BookingListTable() {
     setSelectedBooking(record);
     setIsModalVisible(true);
   };
+
+const handleDelete = (record: any) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // ✅ Perform delete logic here
+      // e.g., call your API: deleteService(record.id)
+      console.log('Deleting record:', record.id);
+      
+      // Optionally show success message
+      Swal.fire('Deleted!', 'The record has been deleted.', 'success');
+    }
+  });
+};
 
   const bookingColumns = [
     {
@@ -118,23 +141,29 @@ export default function BookingListTable() {
       key: "actions",
       width: 100,
       render: (_: any, record: BookingRecord) => (
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: "1",
-                label: "View Details",
-                onClick: () => showBookingDetails(record),
-              },
-              { key: "2", label: "Edit" },
-              { key: "3", label: "Delete" },
-            ],
-          }}
-          placement="bottomRight"
-          trigger={["click"]}
-        >
-          <Button type="text" icon={<EllipsisOutlined />} />
-        </Dropdown>
+<Dropdown
+  menu={{
+    items: [
+      {
+        key: '1',
+        label: 'View Details',
+        onClick: () => showBookingDetails(record),
+      },
+      { key: '2', label: 'Edit' },
+      {
+        key: '3',
+        label: 'Delete',
+        onClick: (e) => {
+          e.domEvent.stopPropagation(); // Prevent row click if in table
+          handleDelete(record);
+        },
+      },
+    ],
+  }}
+  placement="bottomRight"
+>
+  <Button type="text" icon={<EllipsisOutlined />} />
+</Dropdown>
       ),
     },
   ];

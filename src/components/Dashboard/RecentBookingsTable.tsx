@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/dashboard/RecentBookingsTable.tsx
-'use client';
-import { Card, Table, Dropdown, Button, Modal, Typography } from 'antd';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+"use client";
+import { Card, Table, Dropdown, Button, Modal, Typography } from "antd";
+import { EllipsisOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import Swal from "sweetalert2";
 
 const { Text } = Typography;
 
@@ -15,7 +16,7 @@ interface BookingRecord {
   email: string;
   className: string;
   dateTime: string;
-  payment: 'Card' | 'Bank' | 'Credit';
+  payment: "Card" | "Bank" | "Credit";
 }
 
 /** Props interface */
@@ -28,23 +29,47 @@ interface RecentBookingsTableProps {
 const bookingData: BookingRecord[] = Array.from({ length: 12 }, (_, i) => ({
   key: i,
   id: 12345 + i,
-  bookedBy: 'Wilson Leon',
-  email: 'client009@gmail.com',
-  className: 'Signature Experiences',
-  dateTime: '12/12/25 - 6:00pm',
-  payment: ['Card', 'Bank', 'Credit'][i % 3] as BookingRecord['payment'],
+  bookedBy: "Wilson Leon",
+  email: "client009@gmail.com",
+  className: "Signature Experiences",
+  dateTime: "12/12/25 - 6:00pm",
+  payment: ["Card", "Bank", "Credit"][i % 3] as BookingRecord["payment"],
 }));
 
 export default function RecentBookingsTable({
   currentPage,
   setCurrentPage,
 }: RecentBookingsTableProps) {
-  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(
+    null
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showDetails = (record: BookingRecord) => {
     setSelectedBooking(record);
     setIsModalVisible(true);
+  };
+
+  const handleDelete = (record: any) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Perform delete logic here
+        // e.g., call your API: deleteService(record.id)
+        console.log("Deleting record:", record.id);
+
+        // Optionally show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
   };
 
   const closeModal = () => {
@@ -54,51 +79,51 @@ export default function RecentBookingsTable({
 
   const bookingColumns = [
     {
-      title: 'Booking ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "Booking ID",
+      dataIndex: "id",
+      key: "id",
       width: 120,
     },
     {
-      title: 'Booked By',
-      dataIndex: 'bookedBy',
-      key: 'bookedBy',
+      title: "Booked By",
+      dataIndex: "bookedBy",
+      key: "bookedBy",
       width: 150,
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
       width: 200,
       render: (text: string) => (
         <span className="text-gray-700 text-sm">{text}</span>
       ),
     },
     {
-      title: 'Class Name',
-      dataIndex: 'className',
-      key: 'className',
+      title: "Class Name",
+      dataIndex: "className",
+      key: "className",
       width: 180,
     },
     {
-      title: 'Date & Time',
-      dataIndex: 'dateTime',
-      key: 'dateTime',
+      title: "Date & Time",
+      dataIndex: "dateTime",
+      key: "dateTime",
       width: 160,
     },
     {
-      title: 'Payment',
-      dataIndex: 'payment',
-      key: 'payment',
+      title: "Payment",
+      dataIndex: "payment",
+      key: "payment",
       width: 120,
-      render: (text: BookingRecord['payment']) => {
-        let bgColor = '#A7997D40';
-        let textColor = '#4E4E4A';
+      render: (text: BookingRecord["payment"]) => {
+        let bgColor = "#A7997D40";
+        let textColor = "#4E4E4A";
         let fontWeight = 500;
 
-        if (text === 'Credit') {
-          bgColor = '#4CAF50'; // Green
-          textColor = 'white';
+        if (text === "Credit") {
+          bgColor = "#4CAF50"; // Green
+          textColor = "white";
           fontWeight = 600;
         }
 
@@ -109,8 +134,8 @@ export default function RecentBookingsTable({
               backgroundColor: bgColor,
               color: textColor,
               fontWeight,
-              fontSize: '11px',
-              padding: '4px 8px',
+              fontSize: "11px",
+              padding: "4px 8px",
             }}
           >
             {text}
@@ -119,20 +144,27 @@ export default function RecentBookingsTable({
       },
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       width: 100,
       render: (_: any, record: BookingRecord) => (
         <Dropdown
           menu={{
             items: [
               {
-                key: '1',
-                label: 'View Details',
+                key: "1",
+                label: "View Details",
                 onClick: () => showDetails(record),
               },
-              { key: '2', label: 'Edit' },
-              { key: '3', label: 'Delete' },
+              { key: "2", label: "Edit" },
+              {
+                key: "3",
+                label: "Delete",
+                onClick: (e) => {
+                  e.domEvent.stopPropagation(); // Prevent row click if in table
+                  handleDelete(record);
+                },
+              },
             ],
           }}
           placement="bottomRight"
@@ -150,18 +182,18 @@ export default function RecentBookingsTable({
         title={
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
             }}
           >
             {/* Left: Title */}
             <span
               style={{
-                fontSize: '18px',
-                color: '#A7997D',
-                fontWeight: '600',
+                fontSize: "18px",
+                color: "#A7997D",
+                fontWeight: "600",
               }}
             >
               Recent Bookings
@@ -169,17 +201,17 @@ export default function RecentBookingsTable({
           </div>
         }
         style={{
-          borderRadius: '0',
-          border: 'none',
-          backgroundColor: 'transparent',
-          overflow: 'hidden',
+          borderRadius: "0",
+          border: "none",
+          backgroundColor: "transparent",
+          overflow: "hidden",
         }}
         bodyStyle={{
           padding: 0,
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
         }}
       >
-        <div style={{ overflowX: 'auto', width: '100%' }}>
+        <div style={{ overflowX: "auto", width: "100%" }}>
           <Table
             columns={bookingColumns}
             dataSource={bookingData}
@@ -189,13 +221,13 @@ export default function RecentBookingsTable({
               total: bookingData.length,
               onChange: setCurrentPage,
               showSizeChanger: false,
-              position: ['bottomRight'],
+              position: ["bottomRight"],
               hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
             tableLayout="auto"
             bordered={false}
-            style={{ marginTop: '20px' }}
+            style={{ marginTop: "20px" }}
           />
         </div>
 
@@ -228,11 +260,17 @@ export default function RecentBookingsTable({
             padding: 16px 16px;
           }
 
-          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
+          .custom-recent-bookings-card
+            .ant-table-thead
+            > tr:first-child
+            > th:first-child {
             border-top-left-radius: 8px !important;
           }
 
-          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
+          .custom-recent-bookings-card
+            .ant-table-thead
+            > tr:first-child
+            > th:last-child {
             border-top-right-radius: 8px !important;
           }
 
@@ -281,38 +319,41 @@ export default function RecentBookingsTable({
         width={600}
       >
         {selectedBooking && (
-          <div style={{ padding: '20px', lineHeight: '2.2' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ padding: "20px", lineHeight: "2.2" }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Booking ID</Text>
               <Text>{selectedBooking.id}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Booked By</Text>
               <Text>{selectedBooking.bookedBy}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Email</Text>
               <Text>{selectedBooking.email}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Last Class Name</Text>
               <Text>{selectedBooking.className}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Date & Time</Text>
               <Text>{selectedBooking.dateTime}</Text>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Text strong>Payment</Text>
               <span
                 style={{
                   backgroundColor:
-                    selectedBooking.payment === 'Credit' ? '#4CAF50' : '#A7997D40',
-                  color: selectedBooking.payment === 'Credit' ? 'white' : '#4E4E4A',
-                  fontWeight: selectedBooking.payment === 'Credit' ? 600 : 500,
-                  padding: '4px 8px',
-                  borderRadius: '20px',
-                  fontSize: '11px',
+                    selectedBooking.payment === "Credit"
+                      ? "#4CAF50"
+                      : "#A7997D40",
+                  color:
+                    selectedBooking.payment === "Credit" ? "white" : "#4E4E4A",
+                  fontWeight: selectedBooking.payment === "Credit" ? 600 : 500,
+                  padding: "4px 8px",
+                  borderRadius: "20px",
+                  fontSize: "11px",
                 }}
               >
                 {selectedBooking.payment}

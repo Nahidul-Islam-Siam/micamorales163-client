@@ -4,6 +4,7 @@
 import React, { useState, useMemo } from "react";
 import { Table, Dropdown, Menu, Button } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
+import Swal from "sweetalert2";
 
 // --------------------
 // Interfaces
@@ -78,6 +79,29 @@ const SubscriptionTable: React.FC = () => {
     setCurrentPage(1);
   };
 
+  const handleDelete = (record: Subscription) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  }).then((result) => {
+  if (result.isConfirmed) {
+    // ✅ Perform delete logic here
+    // e.g., call your API: deleteService(record.id)
+    console.log("Deleting record:", record.key);
+    
+    // Optionally show success message
+    Swal.fire("Deleted!", "The record has been deleted.", "success");
+  }   
+  })
+
+  };
+
   const columns = [
     {
       title: "Subscription Title",
@@ -102,7 +126,7 @@ const SubscriptionTable: React.FC = () => {
           overlay={
             <ActionMenu
               onEdit={() => console.log("Edit", record.key)}
-              onDelete={() => console.log("Delete", record.key)}
+              onDelete={() => handleDelete(record)}
             />
           }
           trigger={['click']}

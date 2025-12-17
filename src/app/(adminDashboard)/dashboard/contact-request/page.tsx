@@ -4,6 +4,7 @@
 import React, { useState, useMemo } from "react";
 import { Button, Modal } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import Swal from "sweetalert2";
 
 // --------------------
 // Interfaces
@@ -55,6 +56,28 @@ const ContactUsPage: React.FC = () => {
   const closeMessageModal = () => {
     setIsModalOpen(false);
     setSelectedMessage(null);
+  };
+
+  const handleDelete = (record: ContactMessage) => {
+Swal.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "Yes, delete it!",
+  cancelButtonText: "Cancel",
+}).then((result) => {
+if (result.isConfirmed) {
+  // ✅ Perform delete logic here
+  // e.g., call your API: deleteService(record.id)
+  console.log("Deleting record:", record.key);
+  
+  // Optionally show success message
+  Swal.fire("Deleted!", "The record has been deleted.", "success");
+}
+})
   };
 
   // Paginate data
@@ -111,7 +134,7 @@ const ContactUsPage: React.FC = () => {
                       type="text"
                       icon={<DeleteOutlined />}
                       danger
-                      onClick={() => console.log('Delete message:', item.key)}
+                      onClick={() => handleDelete(item)}
                       className="text-gray-500 hover:text-red-600"
                     />
                   </div>
