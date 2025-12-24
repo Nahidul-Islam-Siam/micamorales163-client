@@ -1,14 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Card,
-  Table,
-  Dropdown,
-  Button,
-  Modal,
-  Typography,
-} from "antd";
+import { Card, Table, Dropdown, Button, Modal, Typography } from "antd";
 import { EllipsisOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import AddAppointmentModal from "@/components/Dashboard/MyBooking/AddAppointmentModal";
@@ -40,7 +33,9 @@ const bookingData: BookingRecord[] = Array.from({ length: 12 }, (_, i) => ({
 
 export default function BookingListTable() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(
+    null
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
@@ -49,27 +44,27 @@ export default function BookingListTable() {
     setIsModalVisible(true);
   };
 
-const handleDelete = (record: any) => {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // ✅ Perform delete logic here
-      // e.g., call your API: deleteService(record.id)
-      console.log('Deleting record:', record.id);
-      
-      // Optionally show success message
-      Swal.fire('Deleted!', 'The record has been deleted.', 'success');
-    }
-  });
-};
+  const handleDelete = (record: any) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Perform delete logic here
+        // e.g., call your API: deleteService(record.id)
+        console.log("Deleting record:", record.id);
+
+        // Optionally show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
+  };
 
   const bookingColumns = [
     {
@@ -141,29 +136,29 @@ const handleDelete = (record: any) => {
       key: "actions",
       width: 100,
       render: (_: any, record: BookingRecord) => (
-<Dropdown
-  menu={{
-    items: [
-      {
-        key: '1',
-        label: 'View Details',
-        onClick: () => showBookingDetails(record),
-      },
-      { key: '2', label: 'Edit' },
-      {
-        key: '3',
-        label: 'Delete',
-        onClick: (e) => {
-          e.domEvent.stopPropagation(); // Prevent row click if in table
-          handleDelete(record);
-        },
-      },
-    ],
-  }}
-  placement="bottomRight"
->
-  <Button type="text" icon={<EllipsisOutlined />} />
-</Dropdown>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "1",
+                label: "View Details",
+                onClick: () => showBookingDetails(record),
+              },
+              { key: "2", label: "Edit" },
+              {
+                key: "3",
+                label: "Delete",
+                onClick: (e) => {
+                  e.domEvent.stopPropagation(); // Prevent row click if in table
+                  handleDelete(record);
+                },
+              },
+            ],
+          }}
+          placement="bottomRight"
+        >
+          <Button type="text" icon={<EllipsisOutlined />} />
+        </Dropdown>
       ),
     },
   ];
@@ -174,7 +169,9 @@ const handleDelete = (record: any) => {
         className="custom-recent-bookings-card"
         title={
           <div className="flex justify-between items-center w-full">
-            <span className="text-[#A7997D] font-semibold text-lg">Recent Bookings</span>
+            <span className="text-[#A7997D] font-semibold text-lg">
+              Recent Bookings
+            </span>
             <button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-2 rounded-[14px] text-sm font-medium transition-colors"
               onClick={() => setIsAddModalVisible(true)}
@@ -184,8 +181,12 @@ const handleDelete = (record: any) => {
           </div>
         }
         bordered={false}
-        style={{ backgroundColor: 'transparent', boxShadow: 'none', border: 'none' }}
-        bodyStyle={{ padding: 0, backgroundColor: 'transparent' }}
+        style={{
+          backgroundColor: "transparent",
+          boxShadow: "none",
+          border: "none",
+        }}
+        bodyStyle={{ padding: 0, backgroundColor: "transparent" }}
       >
         <div className="overflow-x-auto">
           <Table
@@ -197,7 +198,7 @@ const handleDelete = (record: any) => {
               total: bookingData.length,
               onChange: setCurrentPage,
               showSizeChanger: false,
-              position: ['bottomRight'],
+              position: ["bottomRight"],
               hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
@@ -234,11 +235,17 @@ const handleDelete = (record: any) => {
             padding: 16px 16px;
           }
 
-          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
+          .custom-recent-bookings-card
+            .ant-table-thead
+            > tr:first-child
+            > th:first-child {
             border-top-left-radius: 8px !important;
           }
 
-          .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
+          .custom-recent-bookings-card
+            .ant-table-thead
+            > tr:first-child
+            > th:last-child {
             border-top-right-radius: 8px !important;
           }
 
@@ -285,10 +292,13 @@ const handleDelete = (record: any) => {
         footer={null}
         centered
         width={600}
+        styles={{
+          header: { textAlign: "center" },
+        }}
       >
         {selectedBooking && (
           <div className="space-y-3 p-5 text-sm">
-            <div className="flex justify-between">
+            <div className="flex justify-between ">
               <Text strong>Booking ID</Text>
               <Text>{selectedBooking.id}</Text>
             </div>
@@ -313,11 +323,14 @@ const handleDelete = (record: any) => {
               <span
                 style={{
                   backgroundColor:
-                    selectedBooking.payment === 'Credit' ? '#4CAF50' : '#A7997D40',
-                  color: selectedBooking.payment === 'Credit' ? 'white' : '#4E4E4A',
-                  padding: '4px 8px',
-                  borderRadius: '20px',
-                  fontSize: '11px',
+                    selectedBooking.payment === "Credit"
+                      ? "#4CAF50"
+                      : "#A7997D40",
+                  color:
+                    selectedBooking.payment === "Credit" ? "white" : "#4E4E4A",
+                  padding: "4px 8px",
+                  borderRadius: "20px",
+                  fontSize: "11px",
                   fontWeight: 600,
                 }}
               >

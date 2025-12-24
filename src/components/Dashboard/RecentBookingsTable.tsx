@@ -317,6 +317,9 @@ export default function RecentBookingsTable({
         footer={null}
         centered
         width={600}
+        styles={{
+          header: { textAlign: "center" },
+        }}
       >
         {selectedBooking && (
           <div style={{ padding: "20px", lineHeight: "2.2" }}>

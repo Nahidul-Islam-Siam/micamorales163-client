@@ -73,7 +73,7 @@ export default function MembershipSubscriptionForm({ onSubmit }: MembershipFormP
   const allClasses = [...staticClasses, ...customClasses];
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-sm space-y-6">
+    <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-sm space-y-6 ">
       {/* Subscription Plan Section */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription Plan</h2>

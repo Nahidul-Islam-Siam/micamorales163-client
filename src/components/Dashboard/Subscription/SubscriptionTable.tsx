@@ -2,9 +2,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Table, Dropdown, Menu, Button } from "antd";
+import { Table, Dropdown,  Button } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
 import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 // --------------------
 // Interfaces
@@ -20,10 +21,10 @@ interface Subscription {
 
 type TabKey = "membership" | "signature" | "event";
 
-interface ActionMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
-}
+// interface ActionMenuProps {
+//   onEdit: () => void;
+//   onDelete: () => void;
+// }
 
 // --------------------
 // Mock Data
@@ -57,12 +58,12 @@ const mockData: Record<TabKey, Subscription[]> = {
 // --------------------
 // Action Menu
 // --------------------
-const ActionMenu: React.FC<ActionMenuProps> = ({ onEdit, onDelete }) => (
-  <Menu>
-    <Menu.Item key="edit" onClick={onEdit}>Edit</Menu.Item>
-    <Menu.Item key="delete" danger onClick={onDelete}>Delete</Menu.Item>
-  </Menu>
-);
+// const ActionMenu: React.FC<ActionMenuProps> = ({ onEdit, onDelete }) => (
+//   <Menu>
+//     <Menu.Item key="edit" onClick={onEdit}>Edit</Menu.Item>
+//     <Menu.Item key="delete" danger onClick={onDelete}>Delete</Menu.Item>
+//   </Menu>
+// );
 
 // --------------------
 // Main Component
@@ -71,7 +72,7 @@ const SubscriptionTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("membership");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 4;
-
+const router = useRouter();
   const displayedData = useMemo(() => mockData[activeTab], [activeTab]);
 
   const handleTabChange = (tab: TabKey) => {
@@ -102,43 +103,57 @@ const SubscriptionTable: React.FC = () => {
 
   };
 
-  const columns = [
-    {
-      title: "Subscription Title",
-      dataIndex: "title",
-      key: "title",
-      render: (text: string) => <span className="font-medium">{text}</span>,
-    },
-    { title: "Number Of Class", dataIndex: "numberOfClass", key: "numberOfClass" },
-    { title: "Number Of Credit", dataIndex: "numberOfCredit", key: "numberOfCredit" },
-    {
-      title: "Price $",
-      dataIndex: "price",
-      key: "price",
-      render: (price: number) => <span>${price}</span>,
-    },
-    { title: "Validity Time", dataIndex: "validity", key: "validity" },
-    {
-      title: "Action",
-      key: "action",
-      render: (_: any, record: Subscription) => (
-        <Dropdown
-          overlay={
-            <ActionMenu
-              onEdit={() => console.log("Edit", record.key)}
-              onDelete={() => handleDelete(record)}
-            />
-          }
-          trigger={['click']}
-        >
-          <Button type="text" icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
-    },
-  ];
+ 
+// Then update your columns like this:
+const columns = [
+  {
+    title: "Subscription Title",
+    dataIndex: "title",
+    key: "title",
+    render: (text: string) => <span className="font-medium">{text}</span>,
+  },
+  { title: "Number Of Class", dataIndex: "numberOfClass", key: "numberOfClass" },
+  { title: "Number Of Credit", dataIndex: "numberOfCredit", key: "numberOfCredit" },
+  {
+    title: "Price $",
+    dataIndex: "price",
+    key: "price",
+    render: (price: number) => <span>${price}</span>,
+  },
+  { title: "Validity Time", dataIndex: "validity", key: "validity" },
+  {
+    title: "Action",
+    key: "action",
+    render: (_: any, record: Subscription) => (
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: 'edit',
+              label: 'Edit',
+              onClick: () => {
+                // ✅ Navigate to the correct edit page based on activeTab
+                router.push(`/dashboard/subscription/edit/${activeTab}/${record.key}`);
+              },
+            },
+            {
+              key: 'delete',
+              label: 'Delete',
+              danger: true,
+              onClick: () => handleDelete(record),
+            },
+          ],
+        }}
+        trigger={['click']}
+      >
+        <Button type="text" icon={<MoreOutlined />} />
+      </Dropdown>
+    ),
+  },
+];
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm custom-recent-bookings-card">
+    <div className=" p-6 custom-recent-bookings-card">
       {/* Header */}
       <h2 className="text-xl font-semibold text-gray-900 mb-6">Subscription List</h2>
 
@@ -188,7 +203,7 @@ const SubscriptionTable: React.FC = () => {
           }}
           rowClassName="hover:bg-gray-50"
           scroll={{ x: "max-content" }}
-          className="w-full"
+          className="w-full "
         />
       </div>
 

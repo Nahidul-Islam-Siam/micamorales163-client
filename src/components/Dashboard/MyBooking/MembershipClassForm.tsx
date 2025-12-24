@@ -2,7 +2,7 @@
 "use client"
 
 import { Form, Input, Button, Select, Upload, InputNumber } from "antd"
-import { UploadOutlined, PlusOutlined, CalendarOutlined, CloseOutlined } from "@ant-design/icons"
+import { UploadOutlined, PlusOutlined, CalendarOutlined } from "@ant-design/icons"
 import { useState } from "react"
 // import DateTimePickerModal from "./date-time-picker-modal"
 // import type { Dayjs } from "dayjs"
@@ -169,7 +169,11 @@ export default function MembershipClassForm() {
             type="text"
             danger
             size="small"
-            icon={<CloseOutlined />}
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path d="M24 6V30" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 16L24 6L14 16" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>}
             onClick={(e) => {
               e.stopPropagation()
               handleRemoveTimeSlot(slot.id)

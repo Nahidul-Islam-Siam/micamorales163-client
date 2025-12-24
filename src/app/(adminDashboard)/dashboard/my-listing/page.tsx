@@ -48,7 +48,9 @@ const listingData: ListingRecord[] = Array.from({ length: 6 }, (_, i) => ({
 /** -------- MAIN COMPONENT ---------- **/
 export default function MyListingTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(null);
+  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(
+    null
+  );
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -59,30 +61,31 @@ export default function MyListingTable() {
   };
 
   const handleDelete = (record: any): void => {
-Swal.fire({
-  title: 'Are you sure?',
-  text: "You won't be able to revert this!",
-  icon: 'warning',
-  showCancelButton: true,
-  confirmButtonColor: '#d33',
-  cancelButtonColor: '#3085d6',
-  confirmButtonText: 'Yes, delete it!',
-  cancelButtonText: 'Cancel',
-}).then((result) => {
-  if (result.isConfirmed) {
-    // ✅ Perform delete logic here
-    // e.g., call your API: deleteService(record.id)
-    console.log('Deleting record:', record.id);
-    
-    // Optionally show success message
-    Swal.fire('Deleted!', 'The record has been deleted.', 'success');
-  }
-})
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Perform delete logic here
+        // e.g., call your API: deleteService(record.id)
+        console.log("Deleting record:", record.id);
+
+        // Optionally show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
   };
 
   /** -------- FILTERING ---------- **/
   const filteredData = listingData.filter((item) => {
-    const matchesFilter = activeFilter === "All" || item.status === activeFilter;
+    const matchesFilter =
+      activeFilter === "All" || item.status === activeFilter;
     const matchesSearch =
       item.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.instructor.toLowerCase().includes(searchTerm.toLowerCase());
@@ -136,7 +139,11 @@ Swal.fire({
       key: "remainingSpace",
       width: 120,
       render: (text: number) => (
-        <span className={`text-sm ${text === 0 ? "text-red-500" : "text-green-600"}`}>
+        <span
+          className={`text-sm ${
+            text === 0 ? "text-red-500" : "text-green-600"
+          }`}
+        >
           {text}
         </span>
       ),
@@ -188,9 +195,21 @@ Swal.fire({
         <Dropdown
           menu={{
             items: [
-              { key: "1", label: "Edit", onClick: () => console.log("Edit clicked") },
-              { key: "2", label: "Details", onClick: () => showListingDetails(record) },
-             { key:"3",label:"Delete",onClick:()=>handleDelete(record) }
+              {
+                key: "1",
+                label: "Edit",
+                onClick: () => console.log("Edit clicked"),
+              },
+              {
+                key: "2",
+                label: "Details",
+                onClick: () => showListingDetails(record),
+              },
+              {
+                key: "3",
+                label: "Delete",
+                onClick: () => handleDelete(record),
+              },
             ],
           }}
           placement="bottomRight"
@@ -208,7 +227,7 @@ Swal.fire({
       <Card
         className="custom-my-listing-table"
         bordered={false}
-        style={{ backgroundColor: 'transparent', border: 'none' }}
+        style={{ backgroundColor: "transparent", border: "none" }}
         bodyStyle={{ padding: 0 }}
       >
         {/* Header */}
@@ -227,20 +246,22 @@ Swal.fire({
 
             {/* Filters */}
             <div className="flex gap-2">
-              {["All", "Membership", "Signature Experience", "Event"].map((filter) => (
-                <Button
-                  key={filter}
-                  type={activeFilter === filter ? "primary" : "default"}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-1 rounded-full text-sm ${
-                    activeFilter === filter
-                      ? "bg-[#A7997D] text-white"
-                      : "border border-[#A7997D] text-[#A7997D]"
-                  }`}
-                >
-                  {filter}
-                </Button>
-              ))}
+              {["All", "Membership", "Signature Experience", "Event"].map(
+                (filter) => (
+                  <Button
+                    key={filter}
+                    type={activeFilter === filter ? "primary" : "default"}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-4 py-1 rounded-full text-sm ${
+                      activeFilter === filter
+                        ? "bg-[#A7997D] text-white"
+                        : "border border-[#A7997D] text-[#A7997D]"
+                    }`}
+                  >
+                    {filter}
+                  </Button>
+                )
+              )}
             </div>
 
             {/* Add Class */}
@@ -264,7 +285,7 @@ Swal.fire({
               total: filteredData.length,
               onChange: setCurrentPage,
               showSizeChanger: false,
-              position: ['bottomRight'],
+              position: ["bottomRight"],
               hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
@@ -300,11 +321,17 @@ Swal.fire({
             padding: 16px !important;
           }
 
-          .custom-my-listing-table .ant-table-thead > tr:first-child > th:first-child {
+          .custom-my-listing-table
+            .ant-table-thead
+            > tr:first-child
+            > th:first-child {
             border-top-left-radius: 8px !important;
           }
 
-          .custom-my-listing-table .ant-table-thead > tr:first-child > th:last-child {
+          .custom-my-listing-table
+            .ant-table-thead
+            > tr:first-child
+            > th:last-child {
             border-top-right-radius: 8px !important;
           }
 
@@ -351,6 +378,9 @@ Swal.fire({
         footer={null}
         centered
         width={600}
+        styles={{
+          header: { textAlign: "center" },
+        }}
       >
         {selectedListing && (
           <div className="p-5 space-y-4 text-sm">
