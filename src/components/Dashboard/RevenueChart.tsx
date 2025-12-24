@@ -1,33 +1,92 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/dashboard/RevenueChart.tsx
-import { Card, Select } from "antd";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+"use client";
 
-/** Data Interface */
+import { Card, Select } from "antd";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Line,
+} from "recharts";
+
 interface ChartData {
   name: string;
   value: number;
+  secondary?: number;
 }
 
-/** Component Props Interface */
 interface RevenueChartProps {
   timeRange: "daily" | "weekly" | "monthly" | "yearly";
   setTimeRange: (value: "daily" | "weekly" | "monthly" | "yearly") => void;
 }
 
 const chartData: ChartData[] = [
-  { name: "Featured Classes", value: 200 },
-  { name: "Signature Experiences", value: 450 },
-  { name: "Events of the Season", value: 600 },
-  { name: "Upcoming Events", value: 500 },
-  { name: "Lumina Packages", value: 400 },
+  { name: "Featured Classes", value: 200, secondary: 600 },
+  { name: "Signature Experiences", value: 450, secondary: 350 },
+  { name: "Events of the Season", value: 600, secondary: 900 },
+  { name: "Upcoming Events", value: 500, secondary: 1100 },
+  { name: "Lumica Packages", value: 400, secondary: 300 },
 ];
 
-export default function RevenueChart({ timeRange, setTimeRange }: RevenueChartProps) {
+// simple custom tooltip box similar to the screenshot
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: any[];
+}) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const value = payload[0].value;
+
+  return (
+    <div
+      style={{
+        background: "#ffffff ",
+        borderRadius: 12,
+        boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
+        padding: "12px 16px",
+        minWidth: 120,
+      }}
+    >
+      <div style={{ fontSize: 12, color: "#999" }}>This Month</div>
+      <div style={{ fontSize: 20, fontWeight: 600, color: "#333" }}>
+        ${value}
+      </div>
+      <div style={{ fontSize: 12, color: "#b0a07a", marginTop: 4 }}>May</div>
+    </div>
+  );
+};
+
+export default function RevenueChart({
+  timeRange,
+  setTimeRange,
+}: RevenueChartProps) {
   return (
     <Card
+      // bodyStyle={{ padding: 0 }}
       title={
         <div className="flex justify-between items-center">
-          <span style={{ fontSize: "18px", fontWeight: "600" }}>Total Revenue</span>
+          <div>
+            <div
+              style={{
+                fontSize: 20,
+                color: "#b0a07a",
+                marginBottom: 4,
+                fontWeight: 600,
+              }}
+            >
+              Total Revenue
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: "#000000" }}>Yoga</div>
+          </div>
+
           <Select
             value={timeRange}
             onChange={setTimeRange}
@@ -43,55 +102,73 @@ export default function RevenueChart({ timeRange, setTimeRange }: RevenueChartPr
         </div>
       }
       style={{
-        borderRadius: "12px",
+        borderRadius: 16,
         border: "none",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
         overflow: "hidden",
+        backgroundColor: "#ffffff",
       }}
-      bodyStyle={{ padding: "24px" }}
+      bodyStyle={{ padding: "24px 32px 32px" ,backgroundColor: "#ffffff"}}   
     >
-      <ResponsiveContainer width="100%" height={400}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-          {/* Gradient Fill */}
+      <ResponsiveContainer width="100%" height={260}>
+        <AreaChart
+          data={chartData}
+          margin={{ top: 20, right: 20, left: -20, bottom: 0 }}
+        >
           <defs>
+            {/* main beige gradient area */}
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#A7997D" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#A7997D" stopOpacity={0.1} />
+              <stop offset="0%" stopColor="#A7997D" stopOpacity={0.9} />
+              <stop offset="100%" stopColor="#f7f3ec" stopOpacity={0.1} />
             </linearGradient>
           </defs>
 
-          {/* Grid */}
-          <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e8" />
-
-          {/* Axes */}
-          <XAxis dataKey="name" tick={{ fill: "#666", fontSize: 12 }} axisLine={false} />
-          <YAxis tick={{ fill: "#666", fontSize: 12 }} axisLine={false} />
-
-          {/* Tooltip */}
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#fff",
-              borderRadius: "8px",
-              borderColor: "#e8e8e8",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-              fontSize: "14px",
-            }}
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#e2dfd7"
+            vertical={false}
           />
 
-          {/* Area Graph */}
+          <XAxis
+            dataKey="name"
+            tick={{ fill: "#948b7b", fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            tick={{ fill: "#c0b7a8", fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            width={32}
+          />
+
+          <Tooltip content={<CustomTooltip />} />
+
+          {/* secondary pale line */}
+          <Line
+            type="monotone"
+            dataKey="secondary"
+            stroke="#e2ded7"
+            strokeWidth={2}
+            dot={false}
+            activeDot={false}
+          />
+
+          {/* main filled area */}
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#A7997D"
+            stroke="#7f6b4a"
+            strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorValue)"
-            strokeWidth={2}
             dot={{
               r: 4,
-              fill: "#8884d8",
-              stroke: "#fff",
+              fill: "#ffffff",
+              stroke: "#7f6b4a",
               strokeWidth: 2,
             }}
+            activeDot={{ r: 5 }}
           />
         </AreaChart>
       </ResponsiveContainer>

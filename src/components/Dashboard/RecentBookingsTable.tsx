@@ -122,8 +122,8 @@ export default function RecentBookingsTable({
         let fontWeight = 500;
 
         if (text === "Credit") {
-          bgColor = "#4CAF50"; // Green
-          textColor = "white";
+          bgColor = "#E6E6D1"; // Green
+          textColor = "#4E4E4A";
           fontWeight = 600;
         }
 

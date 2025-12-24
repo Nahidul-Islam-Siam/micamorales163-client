@@ -54,7 +54,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Class Name"
               name="className"
-              rules={[{ required: true, message: "Please enter class name" }]}
+              rules={[{  message: "Please enter class name" }]}
             >
               <Input
                 placeholder="Enter class name"
@@ -65,7 +65,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Short Description"
               name="shortDescription"
-              rules={[{ required: true, message: "Please enter short description" }]}
+              rules={[{  message: "Please enter short description" }]}
             >
               <Input.TextArea
                 placeholder="Enter class short description"
@@ -77,7 +77,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Instructor Name"
               name="instructorName"
-              rules={[{ required: true, message: "Please enter instructor name" }]}
+              rules={[{  message: "Please enter instructor name" }]}
             >
               <Input
                 placeholder="Enter instructor name"
