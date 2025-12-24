@@ -17,8 +17,8 @@ export default function AddSubscription() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F3F3] p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen  p-6">
+      <div className=" mx-auto">
         {/* Header */}
         <h1 className="text-xl font-normal text-[#111827] mb-6">Add Subscription</h1>
 
@@ -45,7 +45,7 @@ export default function AddSubscription() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className=" p-6 rounded-lg shadow-sm">
           {activeTab === "membership" && (
             <MembershipSubscriptionForm onSubmit={handleFormSubmit} />
           )}

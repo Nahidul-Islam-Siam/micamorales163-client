@@ -149,10 +149,10 @@ const SubscriptionTable: React.FC = () => {
             <button
               key={tab}
               onClick={() => handleTabChange(tab as TabKey)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab
                   ? "bg-[#A7997D] text-white border border-[#A7997D]"
-                  : "text-gray-700 border border-gray-300 hover:bg-gray-100"
+                  : "text-[#A7997D] border border-[#A7997D] hover:bg-gray-100"
               }`}
             >
               {tab === "membership"
@@ -166,7 +166,7 @@ const SubscriptionTable: React.FC = () => {
 
         <Button
           href="/dashboard/subscription/add-subscription"
-          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
+          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-lg text-sm font-medium"
         >
           + Add Subscription
         </Button>

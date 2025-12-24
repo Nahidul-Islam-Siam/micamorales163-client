@@ -1,45 +1,62 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/SignatureExperienceSubscriptionForm.tsx
+// components/MembershipSubscriptionForm.tsx
 "use client";
 
 import React, { useState } from "react";
 
-interface SignatureExperienceFormProps {
+interface MembershipFormProps {
   onSubmit: (values: any) => void;
 }
 
-export default function EvenSubscriptionForm({
-  onSubmit,
-}: SignatureExperienceFormProps) {
-  const [includes, setIncludes] = useState<string[]>(["Full studio reservation"]);
-  const [newInclude, setNewInclude] = useState("");
-
-  const predefinedItems = [
-    "Full studio reservation",
-    "60-minute private class with certified instructor",
-    "Additional space for sharing after the practice",
-    "Extra 40 minutes for celebration",
+export default function EventSubscriptionForm({ onSubmit }: MembershipFormProps) {
+  // Static classes from Figma (always present)
+  const staticClasses = [
+    "Hot Pilates",
+    "Soul Pack",
+    "Yoga Flow",
+    "Barre Blast",
+    "Meditation Hour",
+    "HIIT Core",
+    "Dance Cardio",
+    "Stretch & Restore",
   ];
 
   const [formData, setFormData] = useState({
     subscriptionTitle: "",
-    numberOfPerson: 1,
+    numberOfClass: 1,
+    numberOfCredit: 1,
     price: 0,
     validityTime: 30,
   });
 
-  const handleAddInclude = () => {
-    if (newInclude.trim()) {
-      setIncludes([...includes, newInclude.trim()]);
-      setNewInclude("");
+  // Selected classes (includes static + custom, and custom are auto-selected when added)
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+
+  // Custom classes added by user
+  const [customClasses, setCustomClasses] = useState<string[]>([]);
+
+  const [newClassName, setNewClassName] = useState("");
+
+  // Add a new custom class and auto-select it
+  const handleAddClass = () => {
+    const name = newClassName.trim();
+    if (name && !customClasses.includes(name) && !staticClasses.includes(name)) {
+      setCustomClasses([...customClasses, name]);
+      setSelectedClasses([...selectedClasses, name]); // auto-select
+      setNewClassName("");
     }
   };
 
-  const handleRemoveInclude = (item: string) => {
-    setIncludes(includes.filter((i) => i !== item));
+  // Toggle selection (for both static and custom)
+  const toggleClassSelection = (className: string) => {
+    if (selectedClasses.includes(className)) {
+      setSelectedClasses(selectedClasses.filter((c) => c !== className));
+    } else {
+      setSelectedClasses([...selectedClasses, className]);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -47,32 +64,27 @@ export default function EvenSubscriptionForm({
     }));
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, subscriptionTitle: e.target.value });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signature Experience Submitted values:", formData);
-    console.log("Includes:", includes);
-    onSubmit({ ...formData, includes });
+    onSubmit({ ...formData, selectedClasses });
   };
 
+  // Combine all classes: static + custom
+  const allClasses = [...staticClasses, ...customClasses];
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm space-y-6">
+    <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-sm space-y-6">
       {/* Subscription Plan Section */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription Plan</h2>
-
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Subscription Title*
           </label>
           <input
             type="text"
-            name="subscriptionTitle"
             value={formData.subscriptionTitle}
-            onChange={handleInputChange}
+            onChange={(e) => setFormData({ ...formData, subscriptionTitle: e.target.value })}
             placeholder="Enter subscription title"
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
@@ -80,27 +92,38 @@ export default function EvenSubscriptionForm({
         </div>
       </div>
 
-      {/* Number of Person & Price */}
+      {/* Number of Class & Credit */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Number Of Person*
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Number Of Class*</label>
           <input
             type="number"
-            name="numberOfPerson"
+            name="numberOfClass"
             min="1"
-            value={formData.numberOfPerson}
+            value={formData.numberOfClass}
             onChange={handleChange}
-            placeholder="Enter number of person"
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Price $*
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Number Of Credit*</label>
+          <input
+            type="number"
+            name="numberOfCredit"
+            min="1"
+            value={formData.numberOfCredit}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Price & Validity */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price $*</label>
           <div className="relative">
             <span className="absolute left-3 top-2.5 text-gray-500">$</span>
             <input
@@ -110,20 +133,13 @@ export default function EvenSubscriptionForm({
               step="0.01"
               value={formData.price}
               onChange={handleChange}
-              placeholder="Enter price"
               required
               className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
             />
           </div>
         </div>
-      </div>
-
-      {/* Validity Time */}
-      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Validity Time*
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Validity Time*</label>
           <div className="relative">
             <input
               type="number"
@@ -131,7 +147,6 @@ export default function EvenSubscriptionForm({
               min="1"
               value={formData.validityTime}
               onChange={handleChange}
-              placeholder="Enter days"
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
             />
@@ -140,68 +155,41 @@ export default function EvenSubscriptionForm({
         </div>
       </div>
 
-      {/* Includes Section */}
+      {/* Class Selection Section */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Includes*</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Class List*</h2>
 
-        {/* Add New Include Input */}
-        <div className="mb-4 flex gap-2">
+        {/* Add New Class - aligned right in mobile, full width on small */}
+        <div className="flex flex-wrap gap-2 mb-6">
           <input
             type="text"
-            value={newInclude}
-            onChange={(e) => setNewInclude(e.target.value)}
-            placeholder="Enter include item"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
+            value={newClassName}
+            onChange={(e) => setNewClassName(e.target.value)}
+            placeholder="Enter class name"
+            className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A7997D] focus:outline-none"
           />
           <button
             type="button"
-            onClick={handleAddInclude}
-            className="px-4 py-2 bg-[#A7997D] hover:bg-[#8d7c68] text-white rounded-md font-medium transition-colors"
+            onClick={handleAddClass}
+            className="px-4 py-2 bg-[#A7997D] hover:bg-[#8d7c68] text-white rounded-md font-medium whitespace-nowrap"
           >
             Add New
           </button>
         </div>
 
-        {/* Selected Includes Display */}
-        <div className="mb-4 p-4 bg-[#F3F3F5] rounded-md">
-          <div className="flex flex-wrap gap-2">
-            {includes.map((item) => (
-              <span
-                key={item}
-                className="inline-flex items-center px-3 py-1 bg-white border border-gray-300 rounded-md text-sm"
-              >
-                {item}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveInclude(item)}
-                  className="ml-2 text-xs text-gray-500 hover:text-red-500"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Predefined Checkboxes */}
-        <div className="space-y-2">
-          {predefinedItems.map((item) => (
-            <div key={item} className="flex items-center">
+        {/* Class Checkboxes - all classes (static + custom) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {allClasses.map((className) => (
+            <div key={className} className="flex items-center">
               <input
                 type="checkbox"
-                id={`include-${item}`}
-                checked={includes.includes(item)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setIncludes([...includes, item]);
-                  } else {
-                    setIncludes(includes.filter((i) => i !== item));
-                  }
-                }}
+                id={`class-${className.replace(/\s+/g, '-').toLowerCase()}`}
+                checked={selectedClasses.includes(className)}
+                onChange={() => toggleClassSelection(className)}
                 className="mr-2 h-4 w-4 text-[#A7997D] border-gray-300 rounded focus:ring-2 focus:ring-[#A7997D]"
               />
-              <label htmlFor={`include-${item}`} className="text-sm font-medium">
-                {item}
+              <label htmlFor={`class-${className.replace(/\s+/g, '-').toLowerCase()}`} className="text-sm">
+                {className}
               </label>
             </div>
           ))}
@@ -209,10 +197,10 @@ export default function EvenSubscriptionForm({
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-6">
+      <div className="flex justify-end pt-4">
         <button
           type="submit"
-          className="px-8 py-2 bg-[#A7997D] hover:bg-[#8d7c68] text-white rounded-md font-medium transition-colors"
+          className="px-8 py-2 bg-[#A7997D] hover:bg-[#8d7c68] text-white rounded-md font-medium"
         >
           Add
         </button>
