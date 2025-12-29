@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -6,26 +5,9 @@ import { Mail } from "lucide-react";
 import Image from "next/image";
 import logo from "@/assets/logo/logo.png";
 import Link from "next/link";
-import { toast } from "sonner";
-import { useForgatPasswordMutation } from "@/redux/service/auth/authApi";
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState("");
-  const [forgatPassword,{isLoading}] = useForgatPasswordMutation();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await forgatPassword({ email }).unwrap();
-      if (res?.success) {
-        toast.success(res.message);
-      }
-
-
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to send reset link. Please try again.");
-    }
-  }
 
   return (
     <div className="min-h-screen p-6 bg-gray-50 font-normal flex items-center justify-center text-[#4E4E4A] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
@@ -47,7 +29,7 @@ const ForgetPassword = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6">
           {/* Email Field */}
           <div>
             <label className="block text-xs md:text-base text-[#6B7280] mb-3">
@@ -71,13 +53,13 @@ const ForgetPassword = () => {
             className="w-full py-2.5  bg-[#A7997D] text-white rounded-[16px] border-2 border-[#E5E5E5]
  hover:bg-[#9a8c75] transition-all duration-200"
           >
-          {isLoading ? "Sending..." : "Send Reset Link"}
+            Send Reset Link
           </button>
 
           {/* Back to Login Link */}
           <div className="w-full text-sm md:text-base text-[#6B7280] py-2.5 border-2   rounded-[16px] hover:bg-[#9a8c75] transition-all duration-200 ">
             <Link
-              href="/"
+              href="/login"
               className="flex items-center justify-center text-[#A7997D] md:text-base hover:text-white transition-colors"
             >
               <svg

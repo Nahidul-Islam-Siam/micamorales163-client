@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -6,25 +5,13 @@ import { Mail } from "lucide-react";
 import Image from "next/image";
 import logo from "@/assets/logo/logo.png";
 import Link from "next/link";
-import { toast } from "sonner";
-import { useForgatPasswordMutation } from "@/redux/service/auth/authApi";
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState("");
-  const [forgatPassword,{isLoading}] = useForgatPasswordMutation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await forgatPassword({ email }).unwrap();
-      if (res?.success) {
-        toast.success(res.message);
-      }
-
-
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to send reset link. Please try again.");
-    }
+    // Handle forget password logic here
   }
 
   return (
@@ -71,7 +58,7 @@ const ForgetPassword = () => {
             className="w-full py-2.5  bg-[#A7997D] text-white rounded-[16px] border-2 border-[#E5E5E5]
  hover:bg-[#9a8c75] transition-all duration-200"
           >
-          {isLoading ? "Sending..." : "Send Reset Link"}
+            Send Reset Link
           </button>
 
           {/* Back to Login Link */}

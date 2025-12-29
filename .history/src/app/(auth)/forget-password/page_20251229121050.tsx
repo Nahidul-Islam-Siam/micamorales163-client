@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -11,7 +10,7 @@ import { useForgatPasswordMutation } from "@/redux/service/auth/authApi";
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState("");
-  const [forgatPassword,{isLoading}] = useForgatPasswordMutation();
+  const [forgatPassword, { isLoading }] = useForgatPasswordMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +21,8 @@ const ForgetPassword = () => {
       }
 
 
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to send reset link. Please try again.");
+    } catch (error) {
+      toast.error(res?.data?.message || "Failed to send reset link. Please try again.");  
     }
   }
 
@@ -71,7 +70,7 @@ const ForgetPassword = () => {
             className="w-full py-2.5  bg-[#A7997D] text-white rounded-[16px] border-2 border-[#E5E5E5]
  hover:bg-[#9a8c75] transition-all duration-200"
           >
-          {isLoading ? "Sending..." : "Send Reset Link"}
+            Send Reset Link
           </button>
 
           {/* Back to Login Link */}

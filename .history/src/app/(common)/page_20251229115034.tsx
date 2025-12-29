@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -9,20 +8,18 @@ import Link from "next/link";
 import { useLoginUserMutation } from "@/redux/service/auth/authApi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
-import { useDispatch } from "react-redux";
-import { setUser } from "@/redux/features/auth";
+
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const dispatch = useDispatch();
+  
   const [loginUser, { isLoading }] = useLoginUserMutation();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -33,28 +30,18 @@ const LoginForm = () => {
     }
 
     try {
-      const res = await loginUser({
+      const result = await loginUser({
         email,
         password,
       }).unwrap();
 
-      if (res?.success) {
-        const { token, refreshToken } = res.data;
-        dispatch(setUser({ user: null, token, refreshToken }));
-        Cookies.set("token", token);
-        if (res.data.role === "SUPER_ADMIN") {
-          router.push("/dashboard");
-          toast.success(res.message)
-        } else if (res.data.role === "USER") {
-          router.push("/home");
-          toast.success(res.message)
-        }
-      }
+      if(result?.s)
 
       // Redirect to dashboard or home page
-
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Login failed. Please try again.");
+      router.push("/dashboard");
+      toast.success(result.message)
+    } catch (err) {
+      setError(err?.data?.message || "Login failed. Please try again.");
       console.error("Login error:", err);
     }
   };
@@ -164,15 +151,15 @@ const LoginForm = () => {
         </form>
 
         {/* Sign Up Link */}
-          {/* <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-[#A7997D] hover:text-gray-700 transition-colors"
-            >
-              Create one
-            </Link>
-          </div> */}
+        <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-[#A7997D] hover:text-gray-700 transition-colors"
+          >
+            Create one
+          </Link>
+        </div>
       </div>
     </div>
   );

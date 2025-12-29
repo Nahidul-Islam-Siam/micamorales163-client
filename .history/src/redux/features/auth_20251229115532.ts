@@ -39,7 +39,7 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
     },
     setAccessToken(state, action: { payload: string | null }) {
-      state.token = action.payload;
+      state.accessToken = action.payload;
     },
     setRefreshToken(state, action: { payload: string | null }) {
       state.refreshToken = action.payload;
@@ -49,7 +49,7 @@ const authSlice = createSlice({
     },
     logout(state) {
       state.user = null;
-      state.token = null;
+      state.accessToken = null;
       // Remove the "roll" cookie
       document.cookie = "roll=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
       window.location.href = "/";

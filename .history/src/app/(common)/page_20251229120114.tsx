@@ -22,7 +22,7 @@ const LoginForm = () => {
   const [loginUser, { isLoading }] = useLoginUserMutation();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -164,15 +164,15 @@ const LoginForm = () => {
         </form>
 
         {/* Sign Up Link */}
-          {/* <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-[#A7997D] hover:text-gray-700 transition-colors"
-            >
-              Create one
-            </Link>
-          </div> */}
+        <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-[#A7997D] hover:text-gray-700 transition-colors"
+          >
+            Create one
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -71,7 +71,7 @@ const ForgetPassword = () => {
             className="w-full py-2.5  bg-[#A7997D] text-white rounded-[16px] border-2 border-[#E5E5E5]
  hover:bg-[#9a8c75] transition-all duration-200"
           >
-          {isLoading ? "Sending..." : "Send Reset Link"}
+          {isLoading}
           </button>
 
           {/* Back to Login Link */}

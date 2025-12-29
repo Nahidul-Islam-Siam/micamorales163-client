@@ -14,7 +14,7 @@ const baseQuery = fetchBaseQuery({
   // baseUrl: "https://arcroofs.com/api/v1",
   // baseUrl: "http://localhost:3000/api",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth?.token;
+    const token = (getState() as RootState).auth?.accessToken;
     if (token) {
       headers.set("Authorization", `${token}`);
     }
@@ -30,7 +30,7 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 402) {
+  if (result.error && result.error.status === 401) {
     // Refresh access token
     const refreshResult = await baseQuery(
       {

@@ -30,7 +30,7 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 402) {
+  if (result.error && result.error.status === 401) {
     // Refresh access token
     const refreshResult = await baseQuery(
       {
