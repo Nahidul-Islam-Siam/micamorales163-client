@@ -5,23 +5,28 @@ import React, { useState } from "react";
 import { Button, Modal, Spin } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import Swal from "sweetalert2";
-import { useDeleteContactUsMutation, useGetAllContactUsQuery } from "@/redux/service/contactUs/contactUsApi";
+import { useGetAllContactUsQuery } from "@/redux/api/contactUsApi";
 
 // --------------------
 // Interfaces
 // --------------------
 interface ContactMessage {
-  id: string;
-  name: string;
+  _id: string;
+  userName: string;
   email: string;
   phoneNumber: string;
-  subject: string;
   message: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
-
+interface ApiResponse {
+  success: boolean;
+  data: ContactMessage[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
 
 // --------------------
 // Main Component
@@ -38,9 +43,9 @@ const ContactUsPage: React.FC = () => {
     page: currentPage,
     limit: pageSize,
   });
-const [deleteContactUs] = useDeleteContactUsMutation();
-  const displayedData: ContactMessage[] = apiData?.data?.result || [];
-  const total = apiData?.data?.meta?.total || 0;
+
+  const displayedData: ContactMessage[] = apiData?.data || [];
+  const total = apiData?.meta?.total || 0;
   const totalPages = Math.ceil(total / pageSize);
 
   const handlePageChange = (page: number) => {
@@ -57,33 +62,30 @@ const [deleteContactUs] = useDeleteContactUsMutation();
     setSelectedMessage(null);
   };
 
- const handleDelete = async (record: ContactMessage) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-  });
-
-  if (result.isConfirmed) {
-    try {
-      console.log("Deleting record:", record.id);
-
-      await deleteContactUs(record.id).unwrap();
-      refetch();
-
-      Swal.fire("Deleted!", "The record has been deleted.", "success");
-    } catch (error:any) {
-      console.log(error);
-      Swal.fire("Error!", "Failed to delete the record.", "error");
-    }
-  }
-};
-
+  const handleDelete = (record: ContactMessage) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Perform delete logic here
+        // e.g., call your API: deleteContactUs(record._id)
+        console.log("Deleting record:", record._id);
+        
+        // After successful deletion, refetch the data
+        refetch();
+        
+        // Show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
+  };
 
   // Loading state
   if (isLoading) {
@@ -149,8 +151,8 @@ const [deleteContactUs] = useDeleteContactUsMutation();
           </thead>
           <tbody className="divide-y divide-gray-200">
             {displayedData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
+              <tr key={item._id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.userName}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{item.phoneNumber}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={item.message}>
@@ -268,16 +270,13 @@ const [deleteContactUs] = useDeleteContactUsMutation();
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <div className="space-y-2 mb-4">
               <p className="text-sm text-gray-600">
-                <span className="font-medium">From:</span> {selectedMessage?.name}
+                <span className="font-medium">From:</span> {selectedMessage?.userName}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Email:</span> {selectedMessage?.email}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Phone:</span> {selectedMessage?.phoneNumber}
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Subject:</span> {selectedMessage?.subject}
               </p>
             </div>
             <hr className="my-4" />
@@ -286,12 +285,12 @@ const [deleteContactUs] = useDeleteContactUsMutation();
             </p>
           </div>
           <div className="flex justify-between items-center">
-            {/* <Button
+            <Button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white justify-center flex items-center px-4 py-2 rounded-md font-medium"
               onClick={() => console.log('Reply to:', selectedMessage?._id)}
             >
               Reply
-            </Button> */}
+            </Button>
           </div>
         </div>
       </Modal>

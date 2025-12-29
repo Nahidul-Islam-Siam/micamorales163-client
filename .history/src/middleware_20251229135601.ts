@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   } catch (error) {
     console.error("Invalid token or error during decoding:", error);
-    const loginUrl = new URL("/", request.url);
+    const loginUrl = new URL("/signin", request.url);
     return NextResponse.redirect(loginUrl);
   }
 }

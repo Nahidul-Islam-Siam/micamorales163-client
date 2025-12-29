@@ -14,14 +14,14 @@ export type UserType = {
 interface AuthSate {
   user: UserType | null;
   token: string | null;
-  refreshToken: string | null;
+  refresh_token: string | null;
   isLoading?: boolean;
 }
 
 const initialState: AuthSate = {
   user: null,
   token: null,
-  refreshToken: null,
+  refresh_token: null,
   isLoading: false,
 };
 

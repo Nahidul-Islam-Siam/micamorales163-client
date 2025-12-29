@@ -3,7 +3,6 @@
 import { useResetPasswordMutation } from "@/redux/service/auth/authApi"
 import type React from "react"
 import { useState } from "react"
-import { toast } from "sonner"
 
 export default function ChangePassword() {
   const [passwords, setPasswords] = useState({
@@ -53,18 +52,19 @@ export default function ChangePassword() {
         newPassword: passwords.new,
       }
       
-      const res = await changePassword({user:payload}).unwrap()
-      if (res?.success) {
-        toast.success(res.message)
-        setPasswords({
-          current: "",
-          new: "",
-          confirm: "",
-        })
-      }
+      const res = await changePassword(payload).unwrap()
+      console.log(res)
+      setSuccess("Password updated successfully!")
+      
+      // Reset form
+      setPasswords({
+        current: "",
+        new: "",
+        confirm: "",
+      })
     } catch (error: any) {
       console.log(error)
-      toast.error(error?.data?.message || "Failed to update password. Please try again.")
+      setError(error?.data?.message || "Failed to update password. Please try again.")
     }
   }
 

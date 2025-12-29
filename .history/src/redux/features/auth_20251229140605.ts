@@ -21,7 +21,7 @@ interface AuthSate {
 const initialState: AuthSate = {
   user: null,
   token: null,
-  refreshToken: null,
+  refresh_token: null,
   isLoading: false,
 };
 

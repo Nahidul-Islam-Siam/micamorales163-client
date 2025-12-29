@@ -53,15 +53,16 @@ export default function ChangePassword() {
         newPassword: passwords.new,
       }
       
-      const res = await changePassword({user:payload}).unwrap()
-      if (res?.success) {
-        toast.success(res.message)
-        setPasswords({
-          current: "",
-          new: "",
-          confirm: "",
-        })
-      }
+      const res = await changePassword(payload).unwrap()
+      console.log(res)
+      setSuccess("Password updated successfully!")
+      
+      // Reset form
+      setPasswords({
+        current: "",
+        new: "",
+        confirm: "",
+      })
     } catch (error: any) {
       console.log(error)
       toast.error(error?.data?.message || "Failed to update password. Please try again.")

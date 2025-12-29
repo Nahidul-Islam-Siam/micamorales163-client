@@ -78,7 +78,6 @@ const [deleteContactUs] = useDeleteContactUsMutation();
 
       Swal.fire("Deleted!", "The record has been deleted.", "success");
     } catch (error:any) {
-      console.log(error);
       Swal.fire("Error!", "Failed to delete the record.", "error");
     }
   }
@@ -286,12 +285,12 @@ const [deleteContactUs] = useDeleteContactUsMutation();
             </p>
           </div>
           <div className="flex justify-between items-center">
-            {/* <Button
+            <Button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white justify-center flex items-center px-4 py-2 rounded-md font-medium"
               onClick={() => console.log('Reply to:', selectedMessage?._id)}
             >
               Reply
-            </Button> */}
+            </Button>
           </div>
         </div>
       </Modal>

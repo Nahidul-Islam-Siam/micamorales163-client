@@ -7,7 +7,7 @@ import authReducer from "./features/auth";
 const persistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user", "token", "refreshToken", "isLoading"], // Ensure these are included
+  whitelist: ["user", "oken", "refreshToken", "isLoading"], // Ensure these are included
 };
 
 const persistedReducer = persistReducer(persistConfig, authReducer);

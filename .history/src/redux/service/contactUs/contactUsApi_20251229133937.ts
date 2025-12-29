@@ -8,29 +8,7 @@ interface LoginRequest {
 
 const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    registerUser: builder.mutation({
-      query: (user) => ({
-        url: "/auth/register",
-        method: "POST",
-        body: user,
-      }),
-      invalidatesTags: ["auth"],
-    }),
-    loginUser: builder.mutation<any, LoginRequest>({
-      query: (user) => ({
-        url: "/auth/login",
-        method: "POST",
-        body: user,
-      }),
-      invalidatesTags: ["auth"],
-    }),
-    logout: builder.mutation({
-      query: () => ({
-        url: "/auth/logout",
-        method: "POST",
-      }),
-      invalidatesTags: ["auth"],
-    }),
+  
     forgatPassword: builder.mutation<any, { email: string }>({
       query: (user) => ({
         url: "/auth/forgot-password",

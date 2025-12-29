@@ -53,9 +53,9 @@ export default function ChangePassword() {
         newPassword: passwords.new,
       }
       
-      const res = await changePassword({user:payload}).unwrap()
+      const res = await changePassword(payload).unwrap()
       if (res?.success) {
-        toast.success(res.message)
+        to(res.message)
         setPasswords({
           current: "",
           new: "",

@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Button, Modal, Spin } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import Swal from "sweetalert2";
-import { useDeleteContactUsMutation, useGetAllContactUsQuery } from "@/redux/service/contactUs/contactUsApi";
+import { useGetAllContactUsQuery } from "@/redux/service/contactUs/contactUsApi";
 
 // --------------------
 // Interfaces
@@ -38,7 +38,7 @@ const ContactUsPage: React.FC = () => {
     page: currentPage,
     limit: pageSize,
   });
-const [deleteContactUs] = useDeleteContactUsMutation();
+
   const displayedData: ContactMessage[] = apiData?.data?.result || [];
   const total = apiData?.data?.meta?.total || 0;
   const totalPages = Math.ceil(total / pageSize);
@@ -57,33 +57,29 @@ const [deleteContactUs] = useDeleteContactUsMutation();
     setSelectedMessage(null);
   };
 
- const handleDelete = async (record: ContactMessage) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-  });
-
-  if (result.isConfirmed) {
-    try {
-      console.log("Deleting record:", record.id);
-
-      await deleteContactUs(record.id).unwrap();
-      refetch();
-
-      Swal.fire("Deleted!", "The record has been deleted.", "success");
-    } catch (error:any) {
-      console.log(error);
-      Swal.fire("Error!", "Failed to delete the record.", "error");
-    }
-  }
-};
-
+  const handleDelete = (record: ContactMessage) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+      
+        console.log("Deleting record:", record.id);
+        
+        // After successful deletion, refetch the data
+        refetch();
+        
+        // Show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
+  };
 
   // Loading state
   if (isLoading) {
@@ -286,12 +282,12 @@ const [deleteContactUs] = useDeleteContactUsMutation();
             </p>
           </div>
           <div className="flex justify-between items-center">
-            {/* <Button
+            <Button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white justify-center flex items-center px-4 py-2 rounded-md font-medium"
               onClick={() => console.log('Reply to:', selectedMessage?._id)}
             >
               Reply
-            </Button> */}
+            </Button>
           </div>
         </div>
       </Modal>

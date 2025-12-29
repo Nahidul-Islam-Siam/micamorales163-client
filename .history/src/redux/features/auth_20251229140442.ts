@@ -13,15 +13,15 @@ export type UserType = {
 };
 interface AuthSate {
   user: UserType | null;
-  token: string | null;
-  refreshToken: string | null;
+  access_token: string | null;
+  refresh_token: string | null;
   isLoading?: boolean;
 }
 
 const initialState: AuthSate = {
   user: null,
-  token: null,
-  refreshToken: null,
+  access_token: null,
+  refresh_token: null,
   isLoading: false,
 };
 
@@ -33,27 +33,27 @@ const authSlice = createSlice({
       state,
       action: PayloadAction<{
         user: UserType | null;
-        token: string | null;
-        refreshToken: string | null;
+        access_token: string | null;
+        refresh_token: string | null;
       }>
     ) {
       state.user = action.payload.user;
       state.isLoading = false;
-      state.token = action.payload.token;
-      state.refreshToken = action.payload.refreshToken;
+      state.access_token = action.payload.access_token;
+      state.refresh_token = action.payload.refresh_token;
     },
     setAccessToken(state, action: { payload: string | null }) {
-      state.token = action.payload;
+      state.access_token = action.payload;
     },
     setRefreshToken(state, action: { payload: string | null }) {
-      state.token = action.payload;
+      state.refresh_token = action.payload;
     },
     setIsLoading(state, action: { payload: boolean }) {
       state.isLoading = action.payload;
     },
     logout(state) {
       state.user = null;
-      state.token = null;
+      state.access_token = null;
       // Remove the "roll" cookie
       document.cookie =
         "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";

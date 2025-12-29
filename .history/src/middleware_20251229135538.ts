@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect to login if token is not present
   if (!token || typeof token !== "string") {
-    const loginUrl = new URL("/", request.url);
+    const loginUrl = new URL("/signin", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     if (!decodedToken.email) {
       //   console.log("Token missing email or role");
 
-        const loginUrl = new URL("/", request.url);
+        const loginUrl = new URL("/signin", request.url);
       return NextResponse.redirect(loginUrl);
           
       
@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   } catch (error) {
     console.error("Invalid token or error during decoding:", error);
-    const loginUrl = new URL("/", request.url);
+    const loginUrl = new URL("/signin", request.url);
     return NextResponse.redirect(loginUrl);
   }
 }
@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // matcher: [ "/profile","/dashboard/admin/:path*"],
 
-  matcher: [ "/dashboard/:path*"],
+  matcher: [ "/das:path*","/clinic-dashboard/:path*","/dashboard/admin/:path*"],
 };

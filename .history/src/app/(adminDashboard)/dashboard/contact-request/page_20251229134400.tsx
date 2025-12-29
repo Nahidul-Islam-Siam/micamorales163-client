@@ -5,23 +5,29 @@ import React, { useState } from "react";
 import { Button, Modal, Spin } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import Swal from "sweetalert2";
-import { useDeleteContactUsMutation, useGetAllContactUsQuery } from "@/redux/service/contactUs/contactUsApi";
+import { useGetAllContactUsQuery } from "@/redux/service/contactUs/contactUsApi";
+
 
 // --------------------
 // Interfaces
 // --------------------
 interface ContactMessage {
-  id: string;
-  name: string;
+  _id: string;
+  userName: string;
   email: string;
   phoneNumber: string;
-  subject: string;
   message: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
-
+interface ApiResponse {
+  success: boolean;
+  data: ContactMessage[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
 
 // --------------------
 // Main Component
@@ -33,19 +39,13 @@ const ContactUsPage: React.FC = () => {
 
   const pageSize = 5; // Show 5 messages per page
 
-  // Fetch data from API with pagination
-  const { data: apiData, isLoading, isError, refetch } = useGetAllContactUsQuery({
-    page: currentPage,
-    limit: pageSize,
-  });
-const [deleteContactUs] = useDeleteContactUsMutation();
-  const displayedData: ContactMessage[] = apiData?.data?.result || [];
-  const total = apiData?.data?.meta?.total || 0;
-  const totalPages = Math.ceil(total / pageSize);
+  // Fetch data from API
+  const { data: apiData, isLoading, isError } = useGetAllContactUsQuery();
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const displayedData: ContactMessage[] = apiData?.data || [];
+  const total = displayedData.length;
+
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const openMessageModal = (message: ContactMessage) => {
     setSelectedMessage(message);
@@ -57,33 +57,36 @@ const [deleteContactUs] = useDeleteContactUsMutation();
     setSelectedMessage(null);
   };
 
- const handleDelete = async (record: ContactMessage) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-  });
+  const handleDelete = (record: ContactMessage) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Perform delete logic here
+        // e.g., call your API: deleteService(record._id)
+        console.log("Deleting record:", record._id);
+        
+        // Optionally show success message
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
+  };
 
-  if (result.isConfirmed) {
-    try {
-      console.log("Deleting record:", record.id);
+  // Paginate data
+  const paginatedData = displayedData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
-      await deleteContactUs(record.id).unwrap();
-      refetch();
-
-      Swal.fire("Deleted!", "The record has been deleted.", "success");
-    } catch (error:any) {
-      console.log(error);
-      Swal.fire("Error!", "Failed to delete the record.", "error");
-    }
-  }
-};
-
+  // Calculate total pages
+  const totalPages = Math.ceil(total / pageSize);
 
   // Loading state
   if (isLoading) {
@@ -120,10 +123,7 @@ const [deleteContactUs] = useDeleteContactUsMutation();
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm custom-recent-bookings-card">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Contact Us</h2>
-        <p className="text-sm text-gray-500">Total Messages: {total}</p>
-      </div>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Contact Us</h2>
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -148,9 +148,9 @@ const [deleteContactUs] = useDeleteContactUsMutation();
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {displayedData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
+            {paginatedData.map((item) => (
+              <tr key={item._id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.userName}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{item.phoneNumber}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={item.message}>
@@ -199,9 +199,9 @@ const [deleteContactUs] = useDeleteContactUsMutation();
             {/* Page Numbers */}
             {Array.from({ length: totalPages }, (_, i) => {
               const page = i + 1;
-              // Show only 5 pages at a time with ellipsis
-              if (totalPages <= 5) {
-                // Show all pages if 5 or fewer
+              // Show only 5 pages at a time
+              if (totalPages <= 5 || page === 1 || page === totalPages || 
+                  (page >= currentPage - 1 && page <= currentPage + 1)) {
                 return (
                   <button
                     key={page}
@@ -215,28 +215,10 @@ const [deleteContactUs] = useDeleteContactUsMutation();
                     {page}
                   </button>
                 );
-              } else {
-                // Show first page, last page, current page, and adjacent pages
-                if (page === 1 || page === totalPages || 
-                    (page >= currentPage - 1 && page <= currentPage + 1)) {
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 flex items-center justify-center rounded text-sm font-medium
-                        ${currentPage === page
-                          ? 'bg-[#A7997D] text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-200'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                } else if (page === currentPage - 2 || page === currentPage + 2) {
-                  return <span key={page} className="px-2 text-gray-500">...</span>;
-                }
-                return null;
+              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                return <span key={page} className="px-2">...</span>;
               }
+              return null;
             })}
 
             {/* Next */}
@@ -266,32 +248,17 @@ const [deleteContactUs] = useDeleteContactUsMutation();
         <div className="p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Message Details</h3>
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <div className="space-y-2 mb-4">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">From:</span> {selectedMessage?.name}
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Email:</span> {selectedMessage?.email}
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Phone:</span> {selectedMessage?.phoneNumber}
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Subject:</span> {selectedMessage?.subject}
-              </p>
-            </div>
-            <hr className="my-4" />
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {selectedMessage?.message}
             </p>
           </div>
           <div className="flex justify-between items-center">
-            {/* <Button
+            <Button
               className="bg-[#A7997D] hover:bg-[#8d7c68] text-white justify-center flex items-center px-4 py-2 rounded-md font-medium"
               onClick={() => console.log('Reply to:', selectedMessage?._id)}
             >
               Reply
-            </Button> */}
+            </Button>
           </div>
         </div>
       </Modal>

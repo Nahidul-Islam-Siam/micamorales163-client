@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
-import { useResetPasswordMutation } from "@/redux/service/auth/authApi"
+
 import type React from "react"
+
 import { useState } from "react"
-import { toast } from "sonner"
 
 export default function ChangePassword() {
   const [passwords, setPasswords] = useState({
@@ -11,78 +10,23 @@ export default function ChangePassword() {
     new: "",
     confirm: "",
   })
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  
-  const [changePassword, { isLoading }] = useResetPasswordMutation()
 
   const handleInputChange = (field: string, value: string) => {
     setPasswords((prev) => ({
       ...prev,
       [field]: value,
     }))
-    // Clear errors when user types
-    setError("")
-    setSuccess("")
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setSuccess("")
-
-    // Validation
-    if (!passwords.current || !passwords.new || !passwords.confirm) {
-      setError("All fields are required")
-      return
-    }
-
-    if (passwords.new !== passwords.confirm) {
-      setError("New passwords do not match")
-      return
-    }
-
-    if (passwords.new.length < 6) {
-      setError("New password must be at least 6 characters long")
-      return
-    }
-
-    try {
-      const payload = {
-        prePassword: passwords.current,
-        newPassword: passwords.new,
-      }
-      
-      const res = await changePassword({user:payload}).unwrap()
-      if (res?.success) {
-        toast.success(res.message)
-        setPasswords({
-          current: "",
-          new: "",
-          confirm: "",
-        })
-      }
-    } catch (error: any) {
-      console.log(error)
-      toast.error(error?.data?.message || "Failed to update password. Please try again.")
-    }
+    // Handle password update logic here
+    console.log("Password update submitted")
   }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
-      
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-      
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-600 text-sm">
-          {success}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -96,9 +40,9 @@ export default function ChangePassword() {
             onChange={(e) => handleInputChange("current", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="••••••••"
-            disabled={isLoading}
           />
         </div>
+
         <div>
           <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
             New Password
@@ -110,9 +54,9 @@ export default function ChangePassword() {
             onChange={(e) => handleInputChange("new", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="••••••••"
-            disabled={isLoading}
           />
         </div>
+
         <div>
           <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
             Confirm new Password
@@ -124,16 +68,15 @@ export default function ChangePassword() {
             onChange={(e) => handleInputChange("confirm", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="••••••••"
-            disabled={isLoading}
           />
         </div>
+
         <div className="pt-2">
           <button
             type="submit"
-            disabled={isLoading}
-            className="bg-[#A7997D] cursor-pointer text-white px-6 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#978975]"
+            className="bg-[#A7997D] cursor-pointer text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
           >
-            {isLoading ? "Updating..." : "Update password"}
+            Update password
           </button>
         </div>
       </form>
