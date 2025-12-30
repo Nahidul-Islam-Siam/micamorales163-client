@@ -2,7 +2,9 @@
 // components/dashboard/RevenueChart.tsx
 "use client";
 
-import { Card, Select } from "antd";
+import { useGetAnalyticsChartDataQuery } from "@/redux/service/Analytics/analyticsApi";
+import { Card, Select, Skeleton } from "antd";
+import { useState, useMemo } from "react";
 import {
   AreaChart,
   Area,
@@ -14,26 +16,15 @@ import {
   Line,
 } from "recharts";
 
-interface ChartData {
+type TimeRange = "daily" | "weekly" | "monthly" | "yearly";
+
+interface ChartDataItem {
   name: string;
   value: number;
-  secondary?: number;
+  secondary?: number; // optional, for the pale line
 }
 
-interface RevenueChartProps {
-  timeRange: "daily" | "weekly" | "monthly" | "yearly";
-  setTimeRange: (value: "daily" | "weekly" | "monthly" | "yearly") => void;
-}
-
-const chartData: ChartData[] = [
-  { name: "Featured Classes", value: 200, secondary: 600 },
-  { name: "Signature Experiences", value: 450, secondary: 350 },
-  { name: "Events of the Season", value: 600, secondary: 900 },
-  { name: "Upcoming Events", value: 500, secondary: 1100 },
-  { name: "Lumica Packages", value: 400, secondary: 300 },
-];
-
-// simple custom tooltip box similar to the screenshot
+// Custom tooltip (unchanged)
 const CustomTooltip = ({
   active,
   payload,
@@ -64,13 +55,43 @@ const CustomTooltip = ({
   );
 };
 
-export default function RevenueChart({
-  timeRange,
-  setTimeRange,
-}: RevenueChartProps) {
+export default function RevenueChart() {
+  const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
+  
+  const { data: apiResponse, isLoading } = useGetAnalyticsChartDataQuery();
+
+  // ✅ Transform API data: { category, value } → { name, value }
+  const chartData = useMemo<ChartDataItem[]>(() => {
+    if (!apiResponse?.data?.data) return [];
+    
+    return apiResponse.data.data.map((item: any) => ({
+      name: item.category,
+      value: item.value,
+      // Optional: derive `secondary` if needed (e.g., value * 1.5)
+      // For now, keep it as value or omit
+      secondary: item.value, // or remove this line if you don't need secondary line
+    }));
+  }, [apiResponse]);
+
+  // Optional: Show loading chart
+  if (isLoading) {
+    return (
+      <Card
+        style={{
+          borderRadius: 16,
+          border: "none",
+          boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
+          overflow: "hidden",
+        }}
+        bodyStyle={{ padding: "24px 32px 32px" }}
+      >
+        <Skeleton active paragraph={{ rows: 8 }} />
+      </Card>
+    );
+  }
+
   return (
     <Card
-      // bodyStyle={{ padding: 0 }}
       title={
         <div className="flex justify-between items-center">
           <div>
@@ -89,7 +110,7 @@ export default function RevenueChart({
 
           <Select
             value={timeRange}
-            onChange={setTimeRange}
+            onChange={(value) => setTimeRange(value as TimeRange)}
             size="small"
             style={{ width: 120 }}
             options={[
@@ -108,7 +129,7 @@ export default function RevenueChart({
         overflow: "hidden",
         backgroundColor: "#ffffff",
       }}
-      bodyStyle={{ padding: "24px 32px 32px" ,backgroundColor: "#ffffff"}}   
+      bodyStyle={{ padding: "24px 32px 32px", backgroundColor: "#ffffff" }}
     >
       <ResponsiveContainer width="100%" height={260}>
         <AreaChart
@@ -116,7 +137,6 @@ export default function RevenueChart({
           margin={{ top: 20, right: 20, left: -20, bottom: 0 }}
         >
           <defs>
-            {/* main beige gradient area */}
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#A7997D" stopOpacity={0.9} />
               <stop offset="100%" stopColor="#f7f3ec" stopOpacity={0.1} />
@@ -144,7 +164,7 @@ export default function RevenueChart({
 
           <Tooltip content={<CustomTooltip />} />
 
-          {/* secondary pale line */}
+          {/* Secondary line — optional. Remove if not needed */}
           <Line
             type="monotone"
             dataKey="secondary"
@@ -154,7 +174,6 @@ export default function RevenueChart({
             activeDot={false}
           />
 
-          {/* main filled area */}
           <Area
             type="monotone"
             dataKey="value"
