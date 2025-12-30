@@ -15,6 +15,18 @@ export interface CreateSubscriptionPayload {
   classList: string[];
 }
 
+// ✅ New: Update payload allows optional fields
+export interface UpdateSubscriptionPayload {
+  title?: string;
+  classLimit?: number | null;
+  creditAmount?: number;
+  price?: number;
+  validityTime?: number;
+  type?: "UNLIMITED" | "EVENT" | "SIGNATURE" | "MEMBERSHIP";
+  personLimit?: number;
+  classList?: string[];
+}
+
 export interface SubscriptionModel extends CreateSubscriptionPayload {
   id: string;
   adminId: string | null;
@@ -66,6 +78,14 @@ const subscriptionApi = baseApi.injectEndpoints({
       providesTags: ["subscriptionModel"],
     }),
 
+    getSubsciptionModelById: builder.query<SubscriptionActionResponse, string>({
+      query: (id) => ({
+        url: `/subscription-model/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["subscriptionModel"],
+    }),
+
     createSubscriptionModel: builder.mutation<
       SubscriptionActionResponse,
       CreateSubscriptionPayload
@@ -73,6 +93,19 @@ const subscriptionApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: "/subscription-model",
         method: "POST",
+        body,
+      }),
+      invalidatesTags: ["subscriptionModel"],
+    }),
+
+    // ✅ Updated: cleaner arg type + correct payload
+    updateSubscriptionModel: builder.mutation<
+      SubscriptionActionResponse,
+      { id: string; body: UpdateSubscriptionPayload } // ✅ only update fields
+    >({
+      query: ({ id, body }) => ({
+        url: `/subscription-model/${id}`,
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["subscriptionModel"],
@@ -92,8 +125,11 @@ const subscriptionApi = baseApi.injectEndpoints({
   overrideExisting: false,
 });
 
+// ✅ Export all hooks
 export const {
   useGetAllSubscriptionModelsQuery,
+  useGetSubsciptionModelByIdQuery,
   useCreateSubscriptionModelMutation,
+  useUpdateSubscriptionModelMutation, // ✅ don't forget this!
   useDeleteSubscriptionModelMutation,
 } = subscriptionApi;

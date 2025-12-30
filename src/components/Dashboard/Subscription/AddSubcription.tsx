@@ -7,14 +7,12 @@ import MembershipSubscriptionForm from "./MembershipSubscriptionForm";
 import SignatureExperienceSubscriptionForm from "./SignatureExperienceSubscriptionForm";
 
 import EvenSubscriptionForm from "./EventSubscriptionForm";
+import UnlimitedSubscriptionForm from "./UnlimitedSubscriptionForm";
 
 export default function AddSubscription() {
-  const [activeTab, setActiveTab] = useState<"membership" | "signature" | "event">("membership");
+  const [activeTab, setActiveTab] = useState<"membership" | "signature" | "event" | "unlimited">("membership");
 
-  const handleFormSubmit = (values: any) => {
-    console.log(`Submitted ${activeTab} form:`, values);
-    // Handle actual submission logic here (e.g., API call)
-  };
+
 
   return (
     <div className="min-h-screen  p-6">
@@ -28,6 +26,7 @@ export default function AddSubscription() {
             { key: "membership", label: "Membership" },
             { key: "signature", label: "Signature Experience" },
             { key: "event", label: "Event" },
+            {key:"unlimited",label:"Unlimited"}
           ].map((tab) => (
             <button
               type="button"
@@ -47,13 +46,16 @@ export default function AddSubscription() {
         {/* Tab Content */}
         <div className=" p-6 rounded-lg shadow-sm">
           {activeTab === "membership" && (
-            <MembershipSubscriptionForm onSubmit={handleFormSubmit} />
+            <MembershipSubscriptionForm  />
           )}
           {activeTab === "signature" && (
-            <SignatureExperienceSubscriptionForm onSubmit={handleFormSubmit} />
+            <SignatureExperienceSubscriptionForm  />
           )}
           {activeTab === "event" && (
-            <EvenSubscriptionForm onSubmit={handleFormSubmit} />
+            <EvenSubscriptionForm  />
+          )}
+          {activeTab === "unlimited" && (
+            <UnlimitedSubscriptionForm  />
           )}
         </div>
       </div>

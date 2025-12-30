@@ -6,7 +6,7 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
-export default function MembershipSubscriptionForm() {
+export default function UnlimitedSubscriptionForm() {
   const [createMemberShipSubscription, { isLoading }] = useCreateSubscriptionModelMutation();
   const router = useRouter();
 
@@ -83,7 +83,7 @@ export default function MembershipSubscriptionForm() {
       creditAmount: formData.numberOfCredit,
       price: formData.price,
       validityTime: formData.validityTime,
-      type: "MEMBERSHIP" as const, // 👈 hardcoded per your requirement
+      type: "UNLIMITED" as const, // 👈 hardcoded per your requirement
       personLimit: 1, // as in your example
       classList: selectedClasses,
     };

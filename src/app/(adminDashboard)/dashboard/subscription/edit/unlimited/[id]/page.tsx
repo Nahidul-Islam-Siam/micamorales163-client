@@ -17,7 +17,7 @@ const staticClasses = [
   "Stretch & Restore",
 ];
 
-export default function EditEventPage() {
+export default function EditUnlimitedPage() {
   const router = useRouter();
   const params = useParams();
   const { id } = params as { id: string };
@@ -128,7 +128,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="mx-auto p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Event Subscription</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Unlimited Subscription</h1>
 
       <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-sm space-y-6">
         {/* Subscription Title */}
