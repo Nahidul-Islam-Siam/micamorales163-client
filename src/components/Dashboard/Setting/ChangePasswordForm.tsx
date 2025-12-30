@@ -4,6 +4,7 @@ import { useResetPasswordMutation } from "@/redux/service/auth/authApi"
 import type React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
+import Swal from "sweetalert2"
 
 export default function ChangePassword() {
   const [passwords, setPasswords] = useState({
@@ -55,12 +56,14 @@ export default function ChangePassword() {
       
       const res = await changePassword({user:payload}).unwrap()
       if (res?.success) {
-        toast.success(res.message)
+    Swal.fire("Success", res?.message || "Password updated successfully", "success");
         setPasswords({
           current: "",
           new: "",
           confirm: "",
         })
+      } else {
+Swal.fire("Error", res?.message || "Failed to update password. Please try again.", "error");
       }
     } catch (error: any) {
       console.log(error)

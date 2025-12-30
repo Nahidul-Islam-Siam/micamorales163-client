@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-
+import { logout } from "@/redux/features/auth";
 import { useGetmeQuery } from "@/redux/service/auth/authApi";
 import { MenuOutlined } from "@ant-design/icons";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-
+import { useDispatch } from "react-redux";
 
 interface AdminHeaderProps {
   open: boolean;
@@ -20,16 +20,19 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   colorBgContainer,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push("/");
+  };
 
+  const { data } = useGetmeQuery({});
 
-const {data} = useGetmeQuery({});
+  // console.log('data',data.data.username)
 
-// console.log('data',data.data.username)
-
-const name = data?.data?.username ?? "Admin User";
-const role = data?.data?.role ?? "Administrator";
-
-
+  const name = data?.data?.username ?? "Admin User";
+  const role = data?.data?.role ?? "Administrator";
 
   return (
     <header
@@ -71,10 +74,28 @@ const role = data?.data?.role ?? "Administrator";
 
         {/* Notification Bell */}
         <div className="relative">
-         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path d="M10.2676 21C10.4431 21.304 10.6956 21.5565 10.9996 21.732C11.3037 21.9075 11.6485 21.9999 11.9996 21.9999C12.3506 21.9999 12.6955 21.9075 12.9995 21.732C13.3036 21.5565 13.556 21.304 13.7316 21" stroke="#8A8A83" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M3.26225 15.326C3.13161 15.4692 3.0454 15.6472 3.0141 15.8385C2.9828 16.0298 3.00777 16.226 3.08595 16.4034C3.16414 16.5807 3.29218 16.7316 3.4545 16.8375C3.61682 16.9434 3.80642 16.9999 4.00025 17H20.0002C20.194 17.0001 20.3837 16.9438 20.5461 16.8381C20.7085 16.7324 20.8367 16.5817 20.9151 16.4045C20.9935 16.2273 21.0187 16.0311 20.9877 15.8398C20.9566 15.6485 20.8707 15.4703 20.7402 15.327C19.4102 13.956 18.0002 12.499 18.0002 8C18.0002 6.4087 17.3681 4.88258 16.2429 3.75736C15.1177 2.63214 13.5915 2 12.0002 2C10.4089 2 8.88282 2.63214 7.75761 3.75736C6.63239 4.88258 6.00025 6.4087 6.00025 8C6.00025 12.499 4.58925 13.956 3.26225 15.326Z" stroke="#8A8A83" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M10.2676 21C10.4431 21.304 10.6956 21.5565 10.9996 21.732C11.3037 21.9075 11.6485 21.9999 11.9996 21.9999C12.3506 21.9999 12.6955 21.9075 12.9995 21.732C13.3036 21.5565 13.556 21.304 13.7316 21"
+              stroke="#8A8A83"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M3.26225 15.326C3.13161 15.4692 3.0454 15.6472 3.0141 15.8385C2.9828 16.0298 3.00777 16.226 3.08595 16.4034C3.16414 16.5807 3.29218 16.7316 3.4545 16.8375C3.61682 16.9434 3.80642 16.9999 4.00025 17H20.0002C20.194 17.0001 20.3837 16.9438 20.5461 16.8381C20.7085 16.7324 20.8367 16.5817 20.9151 16.4045C20.9935 16.2273 21.0187 16.0311 20.9877 15.8398C20.9566 15.6485 20.8707 15.4703 20.7402 15.327C19.4102 13.956 18.0002 12.499 18.0002 8C18.0002 6.4087 17.3681 4.88258 16.2429 3.75736C15.1177 2.63214 13.5915 2 12.0002 2C10.4089 2 8.88282 2.63214 7.75761 3.75736C6.63239 4.88258 6.00025 6.4087 6.00025 8C6.00025 12.499 4.58925 13.956 3.26225 15.326Z"
+              stroke="#8A8A83"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
           <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
         </div>
 
@@ -101,36 +122,12 @@ const role = data?.data?.role ?? "Administrator";
             >
               <ul className="py-1 text-sm text-gray-700">
                 <li>
-                  <Link
-                    href="#profile"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#settings"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Settings
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/logout"
+                  <div
                     className="block px-4 py-2 text-red-600 hover:bg-red-50 font-medium"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // You can call logout logic here
-                      alert("Logging out...");
-                      // Example: router.push('/login');
-                    }}
+                    onClick={handleLogout}
                   >
                     Logout
-                  </Link>
+                  </div>
                 </li>
               </ul>
             </div>
