@@ -10,6 +10,7 @@ export type UserType = {
   firstName: string;
   lastName: string;
   accessToken: string;
+  username:string;
 };
 interface AuthSate {
   user: UserType | null;

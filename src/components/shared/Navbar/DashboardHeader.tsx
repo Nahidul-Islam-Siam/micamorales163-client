@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+
+import { useGetmeQuery } from "@/redux/service/auth/authApi";
 import { MenuOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+
 
 interface AdminHeaderProps {
   open: boolean;
@@ -17,6 +20,16 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   colorBgContainer,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+
+
+const {data} = useGetmeQuery({});
+
+// console.log('data',data.data.username)
+
+const name = data?.data?.username ?? "Admin User";
+const role = data?.data?.role ?? "Administrator";
+
+
 
   return (
     <header
@@ -72,8 +85,8 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             onClick={() => setShowDropdown((prev) => !prev)}
           >
             <div className="text-right">
-              <div className="text-sm font-medium text-gray-800">Admin User</div>
-              <div className="text-xs text-gray-500">Administrator</div>
+              <div className="text-sm font-medium text-gray-800">{name}</div>
+              <div className="text-xs text-gray-500">{role}</div>
             </div>
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-gray-700">
               AU
