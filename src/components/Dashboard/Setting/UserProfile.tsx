@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Image from "next/image";
@@ -6,20 +7,47 @@ import {
   FiMail as MailIcon,
   FiMapPin as MapPinIcon,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useGetmeQuery } from "@/redux/service/auth/authApi";
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Mock data for the form (in a real app, this would come from state or props)
+  const { data, isLoading } = useGetmeQuery({});
+
+  const user = data?.data;
+  const admin = data?.data?.admin;
+
+  const fullName = admin
+    ? `${admin.firstName} ${admin.lastName}`
+    : "";
+
+  const email = user?.email ?? "";
+  const contact = user?.contactNo ?? "";
+  const address = admin?.location ?? user?.location ?? "";
+  const introduction =
+    admin?.description ?? user?.description ?? "";
+
   const [formData, setFormData] = useState({
-    name: "Joohn Emily Carter",
-    email: "giangbanganh@gmail.com",
-    contact: "+84 0373467950",
-    address: "Dhaka, Bangladesh",
-    introduction:
-      "Lorem ipsum as their for default model text, and a search for 'lorem ipsum' will uncover many web for site.",
+    name: "",
+    email: "",
+    contact: "",
+    address: "",
+    introduction: "",
   });
+
+  useEffect(() => {
+    if (user && admin) {
+      setFormData({
+        name: `${admin.firstName} ${admin.lastName}`,
+        email: user.email ?? "",
+        contact: user.contactNo ?? "",
+        address: admin.location ?? user.location ?? "",
+        introduction:
+          admin.description ?? user.description ?? "",
+      });
+    }
+  }, [user, admin]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -30,7 +58,7 @@ export default function UserProfile() {
 
   const handleSave = () => {
     console.log("Saving profile:", formData);
-    setIsEditing(false); // Close modal after save
+    setIsEditing(false);
   };
 
   const handleCancel = () => {
@@ -39,7 +67,7 @@ export default function UserProfile() {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 md:p-12 shadow-sm relative">
-      {/* Edit Icon - Top Right */}
+      {/* Edit Icon */}
       <button
         className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
         aria-label="Edit profile"
@@ -62,33 +90,32 @@ export default function UserProfile() {
       </button>
 
       <div className="flex flex-col md:flex-row items-center gap-6">
-        {/* Left Side: Avatar */}
+        {/* Avatar */}
         <div className="flex-shrink-0">
           <Image
-            src="/avatar3.png" // Replace with actual image path
-            alt="Joohn Emily Carter"
+            src={user?.avatars || "/avatar3.png"}
+            alt={fullName}
             width={100}
             height={100}
             className="rounded-full object-cover border border-gray-200"
           />
         </div>
 
-        {/* Middle: Name + Introduction */}
+        {/* Info */}
         <div className="flex-1 flex flex-col md:flex-row gap-6 w-full">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Joohn Emily Carter
+              {isLoading ? "Loading..." : fullName}
             </h2>
             <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
               Introduction:
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Lorem ipsum as their for default model text, and a search for
-              &rsquo;lorem ipsum&rsquo; will uncover many web for site.
+              {isLoading ? "Loading..." : introduction}
             </p>
           </div>
 
-          {/* Right Side: Contact Info */}
+          {/* Contact Info */}
           <div className="flex flex-col gap-3 md:w-64 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -97,16 +124,20 @@ export default function UserProfile() {
                   Contact
                 </span>
               </div>
-              <span className="text-sm text-gray-600">+84 0373467950</span>
+              <span className="text-sm text-gray-600">
+                {contact}
+              </span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MailIcon className="w-4 h-4 text-black" />
-                <span className="text-sm text-black font-semibold">Email</span>
+                <span className="text-sm text-black font-semibold">
+                  Email
+                </span>
               </div>
               <span className="text-sm text-gray-600">
-                giangbanganh@gmail.com
+                {email}
               </span>
             </div>
 
@@ -117,86 +148,39 @@ export default function UserProfile() {
                   Address
                 </span>
               </div>
-              <span className="text-sm text-gray-600">Dhaka, Bangladesh</span>
+              <span className="text-sm text-gray-600">
+                {address}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
+      {/* Edit Modal (UNCHANGED DESIGN) */}
       {isEditing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div
-            className="bg-[#FAFBFB] rounded-2xl shadow-xl max-w-4xl w-full p-4 py-9 relative"
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setIsEditing(false);
-            }}
-            tabIndex={0}
-          >
+          <div className="bg-[#FAFBFB] rounded-2xl shadow-xl max-w-4xl w-full p-4 py-9 relative">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
               Edit Profile
             </h3>
 
-            {/* Two-column grid for Name, Email, Contact, Address */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                  placeholder="Enter Name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Contact
-                </label>
-                <input
-                  type="text"
-                  name="contact"
-                  value={formData.contact}
-                  onChange={handleInputChange}
-                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                  placeholder="Enter Contact"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                  placeholder="Enter Email"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full  rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                  placeholder="Enter Address"
-                />
-              </div>
+              {["name", "contact", "email", "address"].map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    type="text"
+                    name={field}
+                    value={(formData as any)[field]}
+                    onChange={handleInputChange}
+                    className="w-full rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D]"
+                  />
+                </div>
+              ))}
             </div>
 
-            {/* Full-width Introduction Field */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Introduction
@@ -206,24 +190,20 @@ export default function UserProfile() {
                 value={formData.introduction}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-3 py-2  border-gray-300  shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D] rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB]"
-                placeholder="Enter Introduction"
+                className="w-full px-3 py-2 rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] focus:outline-none focus:ring-2 focus:ring-[#A7997D]"
               />
             </div>
 
-            {/* Centered Buttons */}
             <div className="flex justify-center space-x-8">
               <button
-                type="button"
                 onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A7997D]"
+                className="px-4 py-2 border rounded-md text-sm"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleSave}
-                className="px-4 py-2 bg-[#A7997D] border border-transparent rounded-md text-sm font-medium text-white hover:bg-[#8d7c68] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A7997D]"
+                className="px-4 py-2 bg-[#A7997D] text-white rounded-md"
               >
                 Change
               </button>
