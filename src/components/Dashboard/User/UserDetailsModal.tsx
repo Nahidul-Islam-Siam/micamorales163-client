@@ -41,7 +41,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
 
   const customer = user.customer;
   const fullName = `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || user.email.split("@")[0];
-  // const avatarUrl = user.avatars || avatarPlaceholder;
+  const avatarUrl = user.avatars || avatarPlaceholder;
 
   // Map actual bookings to table rows
   const bookingRows = (customer.bookings || []).map((booking) => ({
@@ -110,7 +110,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
                 }}
               >
                 <Image
-                  src={avatarPlaceholder}
+                  src={avatarUrl}
                   alt="Avatar"
                   width={120}
                   height={120}

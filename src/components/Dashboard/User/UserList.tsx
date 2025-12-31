@@ -16,10 +16,10 @@ interface TableRowUser {
   userId: string;
   name: string;
   email: string;
-  subscription: string;      // inferred
-  totalClass: number;       // from bookings
-  expiredDate: string;      // inferred from payments
-  rawUser: any;             // full user object for modal
+  subscription: string; // inferred
+  totalClass: number; // from bookings
+  expiredDate: string; // inferred from payments
+  rawUser: any; // full user object for modal
 }
 
 type TabKey = "membership" | "signature" | "event";
@@ -46,7 +46,8 @@ const UserList: React.FC = () => {
       const customer = user.customer || {};
       const firstName = customer.firstName || "";
       const lastName = customer.lastName || "";
-      const name = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : username;
+      const name =
+        firstName || lastName ? `${firstName} ${lastName}`.trim() : username;
 
       const bookings = customer.bookings || [];
       const payments = customer.payments || [];
@@ -60,7 +61,9 @@ const UserList: React.FC = () => {
 
       // 🔸 Infer expiry (example: 30 days from latest completed payment)
       let expiredDate = "N/A";
-      const completedPayments = payments.filter((p: any) => p.status === "COMPLETED");
+      const completedPayments = payments.filter(
+        (p: any) => p.status === "COMPLETED"
+      );
       if (completedPayments.length > 0) {
         const latest = completedPayments.reduce((latest: any, p: any) =>
           new Date(p.createdAt) > new Date(latest.createdAt) ? p : latest
@@ -206,7 +209,12 @@ const UserList: React.FC = () => {
           ))}
         </div>
 
- 
+        {/* <Button
+          href="/dashboard/subscription/add-subscription"
+          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
+        >
+          + Add Subscription
+        </Button> */}
       </div>
 
       <div className="overflow-x-auto">

@@ -25,6 +25,24 @@ const authApi = baseApi.injectEndpoints({
             }),
             providesTags: ["auth"],
           }),
+         getAllAdmin: builder.query({
+            query: ({ page, limit }) => ({
+                url: "/users/get-admin",
+                method: "GET",
+                params: { page, limit },
+            }),
+            providesTags: ["auth"],
+          }),
+
+
+      updateGetMe: builder.mutation({
+      query: ({id,body}) => ({
+        url: `/users/${id}`,
+        method: "PATCH",
+        body
+      }),
+      invalidatesTags: ["auth"],
+    }),
 
     
     loginUser: builder.mutation<any, LoginRequest>({
@@ -67,6 +85,21 @@ const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["auth"],
     }),
+
+  
+    createAdmin: builder.mutation({
+      query: ({ body }) => ({
+        url: "/users/create-admin",
+        method: "POST",
+        body
+
+      }),
+      invalidatesTags: ["auth"],
+    }),
+
+    
+
+
   }),
 });
 
@@ -77,6 +110,9 @@ export const {
   useChangePasswordMutation,
   useForgatPasswordMutation,
   useResetPasswordMutation,
-  useGetmeQuery
+  useGetmeQuery,
+  useUpdateGetMeMutation,
+  useCreateAdminMutation,
+  useGetAllAdminQuery
 } = authApi;
 export const { endpoints: authEndpoints } = authApi;

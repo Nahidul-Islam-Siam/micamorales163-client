@@ -20,7 +20,7 @@ const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
-  credentials: "include", // ✅ includes HttpOnly cookies like refresh token
+  credentials: "include", 
 });
 
 const baseQueryWithReauth: BaseQueryFn<

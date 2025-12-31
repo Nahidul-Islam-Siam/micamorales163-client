@@ -1,5 +1,13 @@
 "use client";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  useCreateAdminMutation,
+  useGetAllAdminQuery,
+  
+} from "@/redux/service/auth/authApi";
+
 import Image from "next/image";
 import { useState } from "react";
 import Swal from "sweetalert2";
@@ -9,23 +17,33 @@ export default function AdministratorSection() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<any>(null);
 
-  // Mock data for administrators
-  const administrators = [
-    {
-      id: 1,
-      name: "Henry Jr.",
-      email: "zen.ahmed@gmail.com",
-      avatar: "/images/avatar.png",
-    },
-    {
-      id: 2,
-      name: "Emily Carter",
-      email: "emily.carter@example.com",
-      avatar: "/images/avatar.png",
-    },
-  ];
+  /* ================= API HOOKS ================= */
+  const [createAdmin, { isLoading: isCreating }] =
+    useCreateAdminMutation();
 
-  // State for form data
+  const {
+    data: adminResponse,
+    isLoading: isAdminsLoading,
+    isError,
+  } = useGetAllAdminQuery({
+    page: 1,
+    limit: 10,
+  });
+
+  /* ================= MAP API DATA ================= */
+  const administrators =
+    adminResponse?.data?.filterOnlyCustomerList?.map((item: any) => ({
+      id: item.id,
+      name:
+        item.admin?.firstName || item.admin?.lastName
+          ? `${item.admin?.firstName ?? ""} ${item.admin?.lastName ?? ""}`.trim()
+          : item.username,
+      email: item.email,
+      avatar: "/images/avatar.png",
+      raw: item,
+    })) || [];
+
+  /* ================= FORM STATE ================= */
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,12 +53,15 @@ export default function AdministratorSection() {
     confirmPassword: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAssignClick = () => setIsAssignModalOpen(true);
+
   const handleCancelAssign = () => {
     setIsAssignModalOpen(false);
     setFormData({
@@ -53,20 +74,49 @@ export default function AdministratorSection() {
     });
   };
 
+  /* ================= CREATE ADMIN ================= */
+ const handleAssign = async () => {
+  if (
+    !formData.name ||
+    !formData.email ||
+    !formData.phoneNumber ||
+    !formData.password ||
+    formData.password.length < 6 ||
+    formData.password !== formData.confirmPassword
+  ) {
+    Swal.fire(
+      "Error",
+      "Please fill all required fields correctly",
+      "error"
+    );
+    return;
+  }
 
-  const handleAssign = () => {
-    // Simple validation
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.address ||
-      !formData.password ||
-      formData.password !== formData.confirmPassword
-    ) {
-      alert("Please fill all required fields and ensure passwords match.");
-      return;
-    }
-    console.log("Assigning administrator:", formData);
+  const [firstName, ...rest] = formData.name.trim().split(" ");
+  const lastName = rest.join(" ");
+
+  const payload = {
+    username: formData.email.split("@")[0],
+    email: formData.email,              // ✅ REQUIRED
+    contactNo: formData.phoneNumber,    // ✅ REQUIRED (NOT NULL)
+    password: formData.password,        // ✅ REQUIRED (>=6)
+    lang: "ENG",
+    description: "Administrator user",
+    admin: {
+      firstName: firstName || "",
+      lastName: lastName || "",
+    },
+  };
+
+  try {
+    await createAdmin({ body:payload}).unwrap();
+
+    Swal.fire(
+      "Success",
+      "Administrator assigned successfully",
+      "success"
+    );
+
     setIsAssignModalOpen(false);
     setFormData({
       name: "",
@@ -76,8 +126,17 @@ export default function AdministratorSection() {
       password: "",
       confirmPassword: "",
     });
-  };
+  } catch (error: any) {
+    Swal.fire(
+      "Error",
+      error?.data?.message || "Failed to assign administrator",
+      "error"
+    );
+  }
+};
 
+
+  /* ================= MODALS ================= */
   const handleDetailsClick = (admin: any) => {
     setSelectedAdmin(admin);
     setIsProfileModalOpen(true);
@@ -89,237 +148,137 @@ export default function AdministratorSection() {
   };
 
   const handleRemoveClick = (admin: any) => {
-Swal.fire({
-  title: "Are you sure?",
-  text: "You won't be able to revert this!",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#d33",
-  cancelButtonColor: "#3085d6",
-  confirmButtonText: "Yes, delete it!",
-  cancelButtonText: "Cancel",
-}).then((result) => {
-  if (result.isConfirmed) {
-    // ✅ Perform delete logic here
-    // e.g., call your API: deleteService(record.id)
-    console.log("Deleting record:", admin.key);
-    
-    // Optionally show success message
-    Swal.fire("Deleted!", "The record has been deleted.", "success");
-  }
-})
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log("Deleting record:", admin.id);
+        Swal.fire("Deleted!", "The record has been deleted.", "success");
+      }
+    });
   };
 
+  /* ================= RENDER ================= */
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
-        <h3 className="text-lg font-semibold text-gray-900">Administrators</h3>
+        <h3 className="text-lg font-semibold text-gray-900">
+          Administrators
+        </h3>
         <button
           onClick={handleAssignClick}
-          className="bg-[#A7997D] text-white px-4 cursor-pointer py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors w-full md:w-auto justify-center md:justify-start"
+          className="bg-[#A7997D] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 w-full md:w-auto justify-center"
         >
           + Assign Administrator
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
         </button>
       </div>
 
       {/* Admin Cards */}
-      <div className="flex flex-col md:flex-col gap-4">
-        {administrators.map((admin) => (
-          <div
-            key={admin.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg gap-4"
-          >
-            <div className="flex items-center gap-3">
-              <Image
-                src={admin.avatar}
-                alt={`${admin.name} avatar`}
-                width={48}
-                height={48}
-                className="rounded-full"
-              />
-              <div>
-                <h4 className="font-medium text-gray-900">{admin.name}</h4>
-                <p className="text-sm text-gray-500 break-all">{admin.email}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-              <button
-                onClick={() => handleDetailsClick(admin)}
-                className="px-4 cursor-pointer py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Details
-              </button>
-              <button
-                onClick={() => handleRemoveClick(admin)}
-                className="px-4 py-2 cursor-pointer text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Assign Administrator Modal (Raw Tailwind) */}
-      {isAssignModalOpen && (
-        <div className="fixed font-roboto inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 md:p-8 relative">
-            
-                  {/* Title */}
-              <h3 className="text-2xl md:text-[30px] font-semibold text-gray-900 mb-6 text-center">
-                Assign Administrator
-              </h3>
-            <div className="p-6 border rounded-lg border-[#D9D9D9]">
-              {/* Close Button */}
-              <button
-                onClick={handleCancelAssign}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label="Close modal"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M6 18L18 6M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-
-        
-
-              {/* Form */}
-              <div className="space-y-6">
-                {/* Administrator Information Header */}
-                <div className=" pb-3">
-                  <h4 className="md:text-2xl text-xl font-semibold ">
-                    Administrator Information
+      {isAdminsLoading ? (
+        <p className="text-sm text-gray-500">
+          Loading administrators...
+        </p>
+      ) : isError ? (
+        <p className="text-sm text-red-500">
+          Failed to load administrators
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {administrators.map((admin: any) => (
+            <div
+              key={admin.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <Image
+                  src={admin.avatar}
+                  alt={admin.name}
+                  width={48}
+                  height={48}
+                  className="rounded-full"
+                />
+                <div>
+                  <h4 className="font-medium text-gray-900">
+                    {admin.name}
                   </h4>
-                </div>
-
-                {/* Name Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name*
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="Enter your name"
-                  />
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email*
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="Enter your email"
-                  />
-                </div>
-
-                {/* Phone Number Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="+0"
-                  />
-                </div>
-
-                {/* Address Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address*
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="Enter your address"
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="Enter your password"
-                  />
-                </div>
-
-                {/* Confirm Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D] focus:border-[#A7997D]"
-                    placeholder="Confirm your password"
-                  />
+                  <p className="text-sm text-gray-500">
+                    {admin.email}
+                  </p>
                 </div>
               </div>
 
-              {/* Assign Button - Centered */}
-              <div className="mt-8 flex justify-center">
+              <div className="flex gap-2">
                 <button
-                  type="button"
-                  onClick={handleAssign}
-                  className="px-10 py-2 bg-[#A7997D] border border-transparent rounded-md text-sm font-medium text-white hover:bg-[#8d7c68] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A7997D]"
+                  onClick={() => handleDetailsClick(admin)}
+                  className="px-4 py-2 text-sm border rounded-md"
                 >
-                  Assign
+                  Details
+                </button>
+                <button
+                  onClick={() => handleRemoveClick(admin)}
+                  className="px-4 py-2 text-sm border rounded-md"
+                >
+                  Remove
                 </button>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Assign Administrator Modal */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full p-6 relative">
+            <h3 className="text-2xl font-semibold mb-6 text-center">
+              Assign Administrator
+            </h3>
+
+            <div className="space-y-4">
+              {[
+                "name",
+                "email",
+                "phoneNumber",
+                "address",
+                "password",
+                "confirmPassword",
+              ].map((field) => (
+                <input
+                  key={field}
+                  type={
+                    field.includes("password") ? "password" : "text"
+                  }
+                  name={field}
+                  value={(formData as any)[field]}
+                  onChange={handleInputChange}
+                  placeholder={field}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              ))}
+            </div>
+
+            <div className="mt-8 flex justify-center gap-4">
+              <button
+                onClick={handleCancelAssign}
+                className="px-6 py-2 border rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssign}
+                disabled={isCreating}
+                className="px-6 py-2 bg-[#A7997D] text-white rounded-md"
+              >
+                {isCreating ? "Assigning..." : "Assign"}
+              </button>
             </div>
           </div>
         </div>
@@ -328,86 +287,17 @@ Swal.fire({
       {/* Profile Modal */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="max-w-full w-full sm:max-w-md shadow-xl overflow-hidden rounded-2xl border border-[#4E4E4A] bg-[#F3F3F3]">
-            <div className="flex justify-between items-center px-4 sm:px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                User Profile
-              </h3>
-              <button
-                onClick={closeProfileModal}
-                className="text-gray-500 cursor-pointer hover:text-gray-700"
-                aria-label="Close"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M6 18L18 6M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-4 sm:p-6 space-y-4">
-              <div className="flex items-center gap-4">
-                <Image
-                  src={selectedAdmin?.avatar || "/images/avatar.png"}
-                  alt={selectedAdmin?.name}
-                  width={64}
-                  height={64}
-                  className="rounded-full object-cover border border-gray-200"
-                />
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {selectedAdmin?.name}
-                  </h2>
-                  <p className="text-sm text-gray-500">Administrator</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
-                  Introduction:
-                </p>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Lorem ipsum as their for default model text, and a search for
-                  &rsquo;lorem ipsum&rsquo; will uncover many web for site.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 font-medium">
-                    Contact
-                  </span>
-                  <span className="text-sm text-gray-600">+84 0373467950</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 font-medium">
-                    Email
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {selectedAdmin?.email}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 font-medium">
-                    Address
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    Dhaka, Bangladesh
-                  </span>
-                </div>
-              </div>
-            </div>
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <button
+              onClick={closeProfileModal}
+              className="float-right"
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-semibold">
+              {selectedAdmin?.name}
+            </h3>
+            <p>{selectedAdmin?.email}</p>
           </div>
         </div>
       )}
