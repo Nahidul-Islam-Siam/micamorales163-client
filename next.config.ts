@@ -8,9 +8,8 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
       {
-        protocol: "http", // Allow HTTP protocol for localhost
-        hostname: "localhost",
-        port: "5000", // Specify the port your local server is running on
+        protocol: "http",
+        hostname: "**",
       },
     ],
   },

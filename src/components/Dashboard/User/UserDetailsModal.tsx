@@ -1,105 +1,87 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Modal, Row, Col, Table,  Divider } from "antd"
-import type { ColumnsType } from "antd/es/table"
-import avatar from "@/assets/avatar/avatar2.png"
-import Image from "next/image"
-//
-// ---------- INTERFACES ----------
-//
+import React from "react";
+import { Modal, Row, Col, Table, Divider, Tag } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import Image from "next/image";
+import avatarPlaceholder from "@/assets/avatar/avatar2.png"; // fallback image
 
-export interface User {
-  name: string
-  email: string
-  phone?: string
-  gender?: string
-  preference?: string
-  address?: string
-  goal?: string
+// Match your actual API response structure
+export interface RealUser {
+  id: string;
+  email: string;
+  gender: "MALE" | "FEMALE" | "OTHERS" | null;
+  avatars: string | null;
+  customer: {
+    firstName: string;
+    lastName: string;
+    address: string | null;
+    gymGoal: string | null;
+    preferredExperience: string | null;
+    bookings: Array<{
+      id: string;
+      bookingDate: string;
+      status: string;
+      classOffering: {
+        name: string;
+        type: string; // e.g., "SIGNATURE", "EVENTS_OF_SEASON"
+      };
+    }>;
+  };
 }
 
-export interface Order {
-  key: string
-  date: string
-  subscription: string
-  totalCredit: number
-  completeClass: number
-  remainingCredit: number
+interface UserDetailsModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  user: RealUser | null;
 }
-
-export interface UserDetailsModalProps {
-  visible: boolean
-  onCancel: () => void
-  user: User | null
-}
-
-//
-// ---------- COMPONENT ----------
-//
 
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, user }) => {
-  if (!user) return null
+  if (!user) return null;
 
-  //
-  // Dummy Orders
-  //
-  const orders: Order[] = [
-    {
-      key: "1",
-      date: "12/12/2025",
-      subscription: user.name.includes("Wilson") ? "Signature Experiences" : "Signature Experiences",
-      totalCredit: 4,
-      completeClass: 3,
-      remainingCredit: 1,
-    },
-    {
-      key: "2",
-      date: "12/12/2025",
-      subscription: "Signature Experiences",
-      totalCredit: 4,
-      completeClass: 3,
-      remainingCredit: 1,
-    },
-    {
-      key: "3",
-      date: "12/12/2025",
-      subscription: "Hot Yoga",
-      totalCredit: 1,
-      completeClass: 1,
-      remainingCredit: 0,
-    },
-  ]
+  const customer = user.customer;
+  const fullName = `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || user.email.split("@")[0];
+  // const avatarUrl = user.avatars || avatarPlaceholder;
 
-  //
-  //
-  const columns: ColumnsType<Order> = [
+  // Map actual bookings to table rows
+  const bookingRows = (customer.bookings || []).map((booking) => ({
+    key: booking.id,
+    date: new Date(booking.bookingDate).toLocaleDateString("en-US"),
+    subscription: booking.classOffering?.name || "—",
+    type: booking.classOffering?.type || "—",
+    status: booking.status || "—",
+  }));
+
+  const columns: ColumnsType<typeof bookingRows[0]> = [
+    { title: "Booking Date", dataIndex: "date", key: "date" },
+    { title: "Class Name", dataIndex: "subscription", key: "subscription" },
     {
-      title: "Order date",
-      dataIndex: "date",
-      key: "date",
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type: string) => {
+        let color = "default";
+        if (type === "SIGNATURE") color = "purple";
+        else if (type === "EVENTS_OF_SEASON") color = "blue";
+        else if (type === "MEMBERSHIP") color = "green";
+        return <Tag color={color}>{type}</Tag>;
+      },
     },
     {
-      title: "Subscription",
-      dataIndex: "subscription",
-      key: "subscription",
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => {
+        let color = "default";
+        if (status === "COMPLETED") color = "success";
+        else if (["PENDING", "PROCESSING"].includes(status)) color = "processing";
+        else if (["CANCELLED", "REJECTED"].includes(status)) color = "error";
+        return <Tag color={color}>{status}</Tag>;
+      },
     },
-    {
-      title: "Total Credit",
-      dataIndex: "totalCredit",
-      key: "totalCredit",
-    },
-    {
-      title: "Complete Class/Session",
-      dataIndex: "completeClass",
-      key: "completeClass",
-    },
-    {
-      title: "Remaining Credit",
-      dataIndex: "remainingCredit",
-      key: "remainingCredit",
-    },
-  ]
+  ];
+
+  const safeValue = (value: string | null | undefined) => value || "N/A";
 
   return (
     <Modal
@@ -107,44 +89,59 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ visible, onCancel, 
       open={visible}
       onCancel={onCancel}
       width={900}
-footer={null}
+      footer={null}
       styles={{
-        header: {
-          textAlign: "center",
-          paddingBottom: "16px",
-        },
-        body: {
-          padding: "24px",
-        },
+        header: { textAlign: "center", paddingBottom: "16px" },
+        body: { padding: "24px" },
       }}
     >
+      {/* User Profile Section */}
       <Row gutter={24} style={{ marginBottom: "32px" }}>
         <Col span={24}>
           <Row gutter={24}>
-            <Col span={8}>
-             <Image src={avatar} alt="Avatar" width={400} height={400}/>
+            <Col span={8} style={{ display: "flex", justifyContent: "center" }}>
+              <div
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: "2px solid #f0f0f0",
+                }}
+              >
+                <Image
+                  src={avatarPlaceholder}
+                  alt="Avatar"
+                  width={120}
+                  height={120}
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
             </Col>
             <Col span={16}>
-              <h2 style={{ margin: "0 0 8px 0", fontSize: "1.5rem" }}>{user.name}</h2>
-              <p style={{ margin: "0 0 16px 0", color: "#666" }}>Customer ID: ID (e.g., CUST-1029)</p>
+              <h2 style={{ margin: "0 0 8px 0", fontSize: "1.5rem" }}>{fullName}</h2>
+              <p style={{ margin: "0 0 16px 0", color: "#666" }}>Customer ID: {user.id}</p>
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <InfoField label="Email" value={user.email} />
                 </Col>
                 <Col span={12}>
-                  <InfoField label="Phone Number" value={user.phone ?? "+8801712345678"} />
+                  <InfoField label="Phone Number" value="N/A" /> {/* add when API supports */}
                 </Col>
                 <Col span={12}>
-                  <InfoField label="Gender" value={user.gender ?? "Female"} />
+                  <InfoField label="Gender" value={safeValue(user.gender)} />
                 </Col>
                 <Col span={12}>
-                  <InfoField label="Preference to experience" value={user.preference ?? "Indoor"} />
+                  <InfoField
+                    label="Preference to experience"
+                    value={safeValue(customer.preferredExperience)}
+                  />
                 </Col>
                 <Col span={12}>
-                  <InfoField label="Address" value={user.address ?? "B286-co, Ak-de-de Skyris, Dhaka, Boulders"} />
+                  <InfoField label="Address" value={safeValue(customer.address)} />
                 </Col>
                 <Col span={12}>
-                  <InfoField label="Goal" value={user.goal ?? "Strengthen my body and calm my mind"} />
+                  <InfoField label="Goal" value={safeValue(customer.gymGoal)} />
                 </Col>
               </Row>
             </Col>
@@ -154,28 +151,28 @@ footer={null}
 
       <Divider />
 
+      {/* Bookings Section */}
       <div style={{ marginTop: "24px" }}>
-        <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "16px",color:"#A7997D" }}>Order Summary</h3>
-        <Table columns={columns} dataSource={orders} pagination={false} size="small" rowHoverable={true} />
+        <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "16px", color: "#A7997D" }}>
+          Bookings ({bookingRows.length})
+        </h3>
+        <Table
+          columns={columns}
+          dataSource={bookingRows}
+          pagination={false}
+          size="small"
+          rowHoverable={true}
+        />
       </div>
     </Modal>
-  )
-}
+  );
+};
 
-//
-// Reusable Field Component
-//
-const InfoField = ({
-  label,
-  value,
-}: {
-  label: string
-  value: string | number
-}) => (
+const InfoField = ({ label, value }: { label: string; value: string | number }) => (
   <div>
     <p style={{ margin: "0 0 4px 0", fontSize: "0.75rem", color: "#999" }}>{label}</p>
     <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 500 }}>{value}</p>
   </div>
-)
+);
 
-export default UserDetailsModal
+export default UserDetailsModal;

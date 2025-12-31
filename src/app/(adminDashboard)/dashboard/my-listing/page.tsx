@@ -10,50 +10,100 @@ import {
   Typography,
   Input,
   Tag,
+  Spin,
 } from "antd";
 import { EllipsisOutlined, SearchOutlined } from "@ant-design/icons";
-import { useState } from "react";
-import Image, { StaticImageData } from "next/image";
-import imageUrl from "@/assets/table/r.png";
+import { useState, useMemo } from "react";
+import Image from "next/image";
+import defaultImage from "@/assets/table/r.png";
 import Swal from "sweetalert2";
+import { useGetClassOfferingsQuery } from "@/redux/service/userprofile/mylisting";
 
 const { Text } = Typography;
 
 /** -------- INTERFACE ---------- **/
 interface ListingRecord {
-  key: number;
-  id: number;
+  key: string;
+  id: string;
   className: string;
   instructor: string;
   space: number;
   remainingSpace: number;
   booked: number;
   status: "Draft" | "Publish" | "Upcoming";
-  image: string | StaticImageData;
+  image: string | null;
+  type: string;
+  publicationStatus: string;
 }
-
-/** -------- MOCK DATA ---------- **/
-const listingData: ListingRecord[] = Array.from({ length: 6 }, (_, i) => ({
-  key: i,
-  id: 1819238388 + i,
-  className: "Soul Pack",
-  instructor: "Micaela Morales",
-  space: 12,
-  remainingSpace: i % 2 === 0 ? 6 : 0,
-  booked: i % 2 === 0 ? 6 : 12,
-  status: i % 3 === 0 ? "Draft" : i % 3 === 1 ? "Publish" : "Upcoming",
-  image: imageUrl,
-}));
 
 /** -------- MAIN COMPONENT ---------- **/
 export default function MyListingTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(
-    null
-  );
+  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const { data: listingsData, isLoading, error } = useGetClassOfferingsQuery();
+
+  // Map real API data to table rows
+  const realListingData = useMemo<ListingRecord[]>(() => {
+    if (!listingsData?.data?.result) return [];
+
+    return listingsData.data.result.map((offering: any) => {
+      // Calculate total space and booked space from schedules
+      let totalSpace = 0;
+      let totalBooked = 0;
+      
+      offering.schedules.forEach((schedule: any) => {
+        schedule.classTimeSlot.forEach((slot: any) => {
+          totalSpace += slot.maxSpace || 0;
+          totalBooked += slot.bookedSpace || 0;
+        });
+      });
+
+      const remainingSpace = totalSpace - totalBooked;
+
+      // Map publication status to table status
+      let status: "Draft" | "Publish" | "Upcoming" = "Draft";
+      if (offering.publicationStatus === "PUBLISHED") {
+        status = "Publish";
+      }
+      // You can add logic for "Upcoming" based on schedule dates if needed
+
+      return {
+        key: offering.id,
+        id: offering.id,
+        className: offering.name,
+        instructor: offering.instructorName,
+        space: totalSpace,
+        remainingSpace: remainingSpace,
+        booked: totalBooked,
+        status: status,
+        image: offering.image || null,
+        type: offering.type,
+        publicationStatus: offering.publicationStatus,
+      };
+    });
+  }, [listingsData]);
+
+  // Apply filters and search
+  const filteredData = useMemo(() => {
+    return realListingData.filter((item) => {
+      // Filter by type
+      const matchesType = activeFilter === "All" || 
+        (activeFilter === "Membership" && item.type === "MEMBERSHIP") ||
+        (activeFilter === "Signature Experience" && item.type === "SIGNATURE") ||
+        (activeFilter === "Event" && item.type === "EVENT");
+
+      // Search by class name or instructor
+      const matchesSearch = 
+        item.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.instructor.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return matchesType && matchesSearch;
+    });
+  }, [realListingData, activeFilter, searchTerm]);
 
   const showListingDetails = (record: ListingRecord): void => {
     setSelectedListing(record);
@@ -72,25 +122,11 @@ export default function MyListingTable() {
       cancelButtonText: "Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
-        // ✅ Perform delete logic here
-        // e.g., call your API: deleteService(record.id)
         console.log("Deleting record:", record.id);
-
-        // Optionally show success message
         Swal.fire("Deleted!", "The record has been deleted.", "success");
       }
     });
   };
-
-  /** -------- FILTERING ---------- **/
-  const filteredData = listingData.filter((item) => {
-    const matchesFilter =
-      activeFilter === "All" || item.status === activeFilter;
-    const matchesSearch =
-      item.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
 
   /** -------- TABLE COLUMNS ---------- **/
   const listingColumns = [
@@ -104,9 +140,13 @@ export default function MyListingTable() {
           <Image
             width={50}
             height={50}
-            src={record.image}
+            src={record.image || defaultImage}
             alt={record.className}
             className="w-12 h-12 rounded object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+        target.src = record.image || defaultImage.src;
+            }}
           />
           <div>
             <div className="font-medium text-gray-800">{record.className}</div>
@@ -130,7 +170,7 @@ export default function MyListingTable() {
       key: "space",
       width: 80,
       render: (text: number) => (
-        <span className="text-gray-700 text-sm">{text}</span>
+        <span className="text-gray-700 text-sm">{text || 0}</span>
       ),
     },
     {
@@ -144,7 +184,7 @@ export default function MyListingTable() {
             text === 0 ? "text-red-500" : "text-green-600"
           }`}
         >
-          {text}
+          {text || 0}
         </span>
       ),
     },
@@ -154,7 +194,7 @@ export default function MyListingTable() {
       key: "booked",
       width: 80,
       render: (text: number) => (
-        <span className="text-gray-700 text-sm">{text}</span>
+        <span className="text-gray-700 text-sm">{text || 0}</span>
       ),
     },
     {
@@ -198,7 +238,7 @@ export default function MyListingTable() {
               {
                 key: "1",
                 label: "Edit",
-                onClick: () => console.log("Edit clicked"),
+                onClick: () => console.log("Edit clicked", record.id),
               },
               {
                 key: "2",
@@ -220,6 +260,24 @@ export default function MyListingTable() {
       ),
     },
   ];
+
+  if (isLoading) {
+    return (
+      <Card className="custom-my-listing-table" bordered={false} bodyStyle={{ padding: "40px" }}>
+        <div className="flex justify-center">
+          <Spin size="large" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="custom-my-listing-table" bordered={false} bodyStyle={{ padding: "40px" }}>
+        <div className="text-center text-red-500">Failed to load class listings.</div>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -289,10 +347,11 @@ export default function MyListingTable() {
               hideOnSinglePage: true,
             }}
             scroll={{ x: 800 }}
+            locale={{ emptyText: "No class listings found" }}
           />
         </div>
 
-        {/* --- Global Styles (Copied from RecentBookingsTable) --- */}
+        {/* --- Global Styles --- */}
         <style jsx global>{`
           .custom-my-listing-table .ant-card-head {
             display: flex !important;
@@ -301,7 +360,7 @@ export default function MyListingTable() {
             min-height: 40px !important;
             margin-bottom: -1px;
             background: transparent !important;
-            border-bottom: 1px solid #f0f0f0 !important;
+            border-bottom: 1 #f0f0f0 !important;
             border-radius: 10px 10px 0 0 !important;
             padding: 0px 0px !important;
           }
@@ -388,25 +447,31 @@ export default function MyListingTable() {
               <Image
                 width={64}
                 height={64}
-                src={selectedListing.image}
+                src={selectedListing.image || defaultImage}
                 alt={selectedListing.className}
                 className="w-16 h-16 rounded object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                target.src = defaultImage.src;
+                }}
               />
               <div>
                 <Text strong>{selectedListing.className}</Text>
                 <div className="text-gray-500">ID: {selectedListing.id}</div>
+                <div className="text-gray-500">Type: {selectedListing.type}</div>
               </div>
             </div>
 
             {[
               ["Instructor", selectedListing.instructor],
-              ["Space", selectedListing.space],
+              ["Total Space", selectedListing.space],
               ["Remaining Space", selectedListing.remainingSpace],
               ["Booked", selectedListing.booked],
+              ["Publication Status", selectedListing.publicationStatus],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-gray-700">
                 <Text strong>{label}</Text>
-                <Text>{value}</Text>
+                <Text>{value?.toString() || "N/A"}</Text>
               </div>
             ))}
 

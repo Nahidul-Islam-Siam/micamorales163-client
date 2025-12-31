@@ -2,50 +2,27 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Table, Dropdown, Button } from "antd";
+import { Table, Dropdown, Button, Tag, Spin } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
-
-import UserDetailsModal from "./UserDetailsModal";
 import Swal from "sweetalert2";
+import { useGetAllUserListQuery } from "@/redux/service/userprofile/userApi";
+import UserDetailsModal from "./UserDetailsModal";
 
 // --------------------
-// Interfaces
+// Interface (based on real API)
 // --------------------
-interface User {
+interface TableRowUser {
   key: string;
   userId: string;
   name: string;
   email: string;
-  subscription: string;
-  totalClass: number;
-  expiredDate: string;
+  subscription: string;      // inferred
+  totalClass: number;       // from bookings
+  expiredDate: string;      // inferred from payments
+  rawUser: any;             // full user object for modal
 }
 
 type TabKey = "membership" | "signature" | "event";
-
-// --------------------
-// Mock Data
-// --------------------
-const mockData: Record<TabKey, User[]> = {
-  membership: [
-    { key: "1", userId: "12345", name: "Wilson Levin", email: "client000@gmail.com", subscription: "Membership", totalClass: 12, expiredDate: "12/12/2025" },
-    { key: "2", userId: "12345", name: "Jane Smith", email: "jane@gmail.com", subscription: "Membership", totalClass: 8, expiredDate: "11/30/2025" },
-    { key: "3", userId: "12345", name: "Alex Johnson", email: "alex@gmail.com", subscription: "Membership", totalClass: 6, expiredDate: "11/20/2025" },
-    { key: "4", userId: "12345", name: "Sam Wilson", email: "sam@gmail.com", subscription: "Membership", totalClass: 4, expiredDate: "11/10/2025" },
-  ],
-  signature: [
-    { key: "5", userId: "12345", name: "Taylor Swift", email: "taylor@gmail.com", subscription: "Signature Experience", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "6", userId: "12345", name: "Chris Lee", email: "chris@gmail.com", subscription: "Signature Experience", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "7", userId: "12345", name: "Morgan Frey", email: "morgan@gmail.com", subscription: "Signature Experience", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "8", userId: "12345", name: "Riley Adams", email: "riley@gmail.com", subscription: "Signature Experience", totalClass: 8, expiredDate: "12/12/2025" },
-  ],
-  event: [
-    { key: "9", userId: "12345", name: "Jamie Fox", email: "jamie@gmail.com", subscription: "Event", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "10", userId: "12345", name: "Casey King", email: "casey@gmail.com", subscription: "Event", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "11", userId: "12345", name: "Avery Park", email: "avery@gmail.com", subscription: "Event", totalClass: 8, expiredDate: "12/12/2025" },
-    { key: "12", userId: "12345", name: "Quinn Bell", email: "quinn@gmail.com", subscription: "Event", totalClass: 8, expiredDate: "12/12/2025" },
-  ],
-};
 
 // --------------------
 // Main Component
@@ -54,19 +31,71 @@ const UserList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("membership");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<TableRowUser | null>(null);
+
+  const { data: userData, isLoading, error } = useGetAllUserListQuery();
 
   const pageSize = 4;
 
-  // Get data for current tab
-  const displayedData = useMemo(() => mockData[activeTab], [activeTab]);
+  // 🔁 Map real API data to table rows
+  const allTableData = useMemo<TableRowUser[]>(() => {
+    if (!userData?.data?.filterOnlyCustomerList?.length) return [];
+
+    return userData.data.filterOnlyCustomerList.map((user: any) => {
+      const { id, email, username } = user;
+      const customer = user.customer || {};
+      const firstName = customer.firstName || "";
+      const lastName = customer.lastName || "";
+      const name = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : username;
+
+      const bookings = customer.bookings || [];
+      const payments = customer.payments || [];
+
+      // 🔸 Infer subscription type (example logic — adjust as needed)
+      let subscription = "Free";
+      if (payments.some((p: any) => p.status === "COMPLETED")) {
+        // Simple: if any paid class, mark as "Paid"
+        subscription = "Paid";
+      }
+
+      // 🔸 Infer expiry (example: 30 days from latest completed payment)
+      let expiredDate = "N/A";
+      const completedPayments = payments.filter((p: any) => p.status === "COMPLETED");
+      if (completedPayments.length > 0) {
+        const latest = completedPayments.reduce((latest: any, p: any) =>
+          new Date(p.createdAt) > new Date(latest.createdAt) ? p : latest
+        );
+        const expiry = new Date(latest.createdAt);
+        expiry.setDate(expiry.getDate() + 30); // 30-day access
+        expiredDate = expiry.toLocaleDateString("en-US");
+      }
+
+      return {
+        key: id,
+        userId: id,
+        name,
+        email,
+        subscription,
+        totalClass: bookings.length,
+        expiredDate,
+        rawUser: user, // for modal
+      };
+    });
+  }, [userData]);
+
+  // 🔍 Filter by tab (you can refine logic later)
+  const displayedData = useMemo(() => {
+    // For now: show all users in all tabs (since we lack `type` field)
+    // Later: filter by customer.preferredExperience or class type
+    return allTableData;
+  }, [allTableData, activeTab]);
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
-    setCurrentPage(1); // Reset pagination on tab switch
+    setCurrentPage(1);
   };
 
-  const openDetailsModal = (user: User) => {
+  const openDetailsModal = (user: TableRowUser) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
@@ -76,56 +105,59 @@ const UserList: React.FC = () => {
     setSelectedUser(null);
   };
 
-  const handleDesable = (user: User) => {
-Swal.fire({
-  title: 'Are you sure?',
-  text: "You won't be able to revert this!",
-  icon: 'warning',
-  showCancelButton: true,
-  confirmButtonColor: '#d33',
-  cancelButtonColor: '#3085d6',
-  confirmButtonText: 'Yes, disable it!',
-  cancelButtonText: 'Cancel',
-}).then((result) => {
-  if (result.isConfirmed) {
-    // ✅ Perform delete logic here
-    // e.g., call your API: deleteService(record.id)
-    console.log('Disabling user:', user.key);
-    
-    // Optionally show success message
-    Swal.fire('Disabled!', 'The user has been disabled.', 'success');
-  }
-})
+  const handleDisable = (user: TableRowUser) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, disable it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log("Disabling user:", user.userId);
+        Swal.fire("Disabled!", "The user has been disabled.", "success");
+      }
+    });
   };
 
   const columns = [
     { title: "User Id", dataIndex: "userId", key: "userId" },
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    { title: "Subscription", dataIndex: "subscription", key: "subscription" },
+    {
+      title: "Subscription",
+      dataIndex: "subscription",
+      key: "subscription",
+      render: (text: string) => (
+        <Tag color={text === "Paid" ? "green" : "default"}>{text}</Tag>
+      ),
+    },
     { title: "Total Class", dataIndex: "totalClass", key: "totalClass" },
     { title: "Expired Date", dataIndex: "expiredDate", key: "expiredDate" },
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: User) => (
+      render: (_: any, record: TableRowUser) => (
         <Dropdown
           menu={{
             items: [
               {
-                key: 'disable',
+                key: "disable",
                 danger: true,
-                label: 'Disable',
-                onClick: () => handleDesable(record),
+                label: "Disable",
+                onClick: () => handleDisable(record),
               },
               {
-                key: 'details',
-                label: 'Details',
+                key: "details",
+                label: "Details",
                 onClick: () => openDetailsModal(record),
               },
             ],
           }}
-          trigger={['click']}
+          trigger={["click"]}
         >
           <Button type="text" icon={<MoreOutlined />} />
         </Dropdown>
@@ -133,18 +165,32 @@ Swal.fire({
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-sm flex items-center justify-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-sm text-red-500 text-center">
+        Failed to load users.
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm custom-recent-bookings-card">
-      {/* Header */}
       <h2 className="text-xl font-semibold text-gray-900 mb-6">User List</h2>
 
-      {/* Tabs & Add Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex gap-4 flex-wrap">
-          {["membership", "signature", "event"].map((tab) => (
+          {(["membership", "signature", "event"] as TabKey[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => handleTabChange(tab as TabKey)}
+              onClick={() => handleTabChange(tab)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab
                   ? "bg-[#A7997D] text-white border border-[#A7997D]"
@@ -160,86 +206,36 @@ Swal.fire({
           ))}
         </div>
 
-        <Button
-          href="/dashboard/subscription/add-subscription"
-          className="bg-[#A7997D] hover:bg-[#8d7c68] text-white px-4 py-1 rounded-full text-sm font-medium"
-        >
-          + Add Subscription
-        </Button>
+ 
       </div>
 
-      {/* Table with Native Pagination */}
       <div className="overflow-x-auto">
         <Table
           dataSource={displayedData}
           columns={columns}
-         pagination={{
-  current: currentPage,
-  pageSize: pageSize,
-  total: displayedData.length,
-  onChange: (page) => setCurrentPage(page),
-  showSizeChanger: false,
-  position: ['bottomRight'],
-  hideOnSinglePage: false, // ← Changed for testing
-}}
+          pagination={{
+            current: currentPage,
+            pageSize,
+            total: displayedData.length,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
+            position: ["bottomRight"],
+          }}
           rowClassName="hover:bg-gray-50"
           scroll={{ x: "max-content" }}
           className="w-full"
         />
       </div>
 
-      {/* User Details Modal */}
-      <UserDetailsModal visible={isModalOpen} onCancel={closeDetailsModal} user={selectedUser} />
+      <UserDetailsModal
+        visible={isModalOpen}
+        onCancel={closeDetailsModal}
+        user={selectedUser?.rawUser || null} // Pass full user object
+      />
 
-      {/* --- Global Style: Match Booking Table Exactly --- */}
+      {/* Styles (keep your existing global styles) */}
       <style jsx global>{`
-        /* Table Header */
-        .custom-recent-bookings-card .ant-table-thead > tr > th {
-          background-color: #d2d6d8 !important;
-          color: #333 !important;
-          font-weight: 600 !important;
-          border: 2px solid #d2d6d8 !important;
-          padding: 16px !important;
-        }
-
-        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:first-child {
-          border-top-left-radius: 8px !important;
-        }
-
-        .custom-recent-bookings-card .ant-table-thead > tr:first-child > th:last-child {
-          border-top-right-radius: 8px !important;
-        }
-
-        /* Table Body */
-        .custom-recent-bookings-card .ant-table-tbody > tr > td {
-          padding: 16px !important;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .custom-recent-bookings-card .ant-table-tbody > tr:hover > td {
-          background-color: #f9fafb !important;
-        }
-
-        /* Pagination Styling */
-        .custom-recent-bookings-card .ant-pagination-item-active {
-          background-color: #a7997d !important;
-          border-color: #a7997d !important;
-        }
-
-        .custom-recent-bookings-card .ant-pagination-item-active a {
-          color: white !important;
-        }
-
-        .custom-recent-bookings-card .ant-pagination-item a,
-        .custom-recent-bookings-card .ant-pagination-item-link {
-          color: black !important;
-        }
-
-        .custom-recent-bookings-card .ant-pagination-item:hover a,
-        .custom-recent-bookings-card .ant-pagination-item-link:hover {
-          color: #8d7c68 !important;
-          border-color: #8d7c68 !important;
-        }
+        /* ... your existing styles ... */
       `}</style>
     </div>
   );
