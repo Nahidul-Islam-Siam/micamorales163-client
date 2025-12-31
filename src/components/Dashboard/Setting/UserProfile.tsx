@@ -8,12 +8,22 @@ import {
   FiMapPin as MapPinIcon,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import { useGetmeQuery } from "@/redux/service/auth/authApi";
+import { useGetmeQuery, useUpdateGetMeMutation } from "@/redux/service/auth/authApi";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
 
+  const userId = useSelector((state: RootState) => state.auth);
+  console.log("auth", userId)
+
+
+
   const { data, isLoading } = useGetmeQuery({});
+  const [updateGetMe, { isLoading: isUpdating }] =
+    useUpdateGetMeMutation();
+
 
   const user = data?.data;
   const admin = data?.data?.admin;
@@ -22,11 +32,16 @@ export default function UserProfile() {
     ? `${admin.firstName} ${admin.lastName}`
     : "";
 
+  const id = user?.id;
+
   const email = user?.email ?? "";
   const contact = user?.contactNo ?? "";
   const address = admin?.location ?? user?.location ?? "";
   const introduction =
     admin?.description ?? user?.description ?? "";
+
+  const avatars = user?.avatar;
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,10 +71,41 @@ export default function UserProfile() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    console.log("Saving profile:", formData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!id) return;
+
+    const [firstName, ...rest] = formData.name.trim().split(" ");
+    const lastName = rest.join(" ");
+
+    const payload = {
+      username: user?.username,
+      email: formData.email,
+      description: formData.introduction || null,
+      gender: user?.gender,
+      location: formData.address || null,
+      contactNo: formData.contact || null,
+      customer: {
+        firstName: firstName || "",
+        lastName: lastName || "",
+        address: formData.address || null,
+        description: formData.introduction || null,
+        gymGoal: null,
+        preferredExperience: null,
+      },
+    };
+
+    try {
+      await updateGetMe({
+        id,
+        body: payload,
+      }).unwrap();
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
   };
+
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -93,7 +139,7 @@ export default function UserProfile() {
         {/* Avatar */}
         <div className="flex-shrink-0">
           <Image
-            src={user?.avatars || "/avatar3.png"}
+            src={avatars || "/avatar3.png"}
             alt={fullName}
             width={100}
             height={100}
@@ -203,10 +249,12 @@ export default function UserProfile() {
               </button>
               <button
                 onClick={handleSave}
+                disabled={isUpdating}
                 className="px-4 py-2 bg-[#A7997D] text-white rounded-md"
               >
-                Change
+                {isUpdating ? "Saving..." : "Change"}
               </button>
+
             </div>
           </div>
         </div>
