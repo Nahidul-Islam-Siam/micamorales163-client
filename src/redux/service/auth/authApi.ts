@@ -25,6 +25,14 @@ const authApi = baseApi.injectEndpoints({
             }),
             providesTags: ["auth"],
           }),
+         getAllAdmin: builder.query({
+            query: ({ page, limit }) => ({
+                url: "/users/get-admin",
+                method: "GET",
+                params: { page, limit },
+            }),
+            providesTags: ["auth"],
+          }),
 
 
       updateGetMe: builder.mutation({
@@ -104,6 +112,7 @@ export const {
   useResetPasswordMutation,
   useGetmeQuery,
   useUpdateGetMeMutation,
-  useCreateAdminMutation
+  useCreateAdminMutation,
+  useGetAllAdminQuery
 } = authApi;
 export const { endpoints: authEndpoints } = authApi;

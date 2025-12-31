@@ -1,37 +1,49 @@
 "use client";
-import { useCreateAdminMutation } from "@/redux/service/auth/authApi";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  useCreateAdminMutation,
+  useGetAllAdminQuery,
+  
+} from "@/redux/service/auth/authApi";
 
 import Image from "next/image";
 import { useState } from "react";
 import Swal from "sweetalert2";
-
 
 export default function AdministratorSection() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<any>(null);
 
+  /* ================= API HOOKS ================= */
   const [createAdmin, { isLoading: isCreating }] =
     useCreateAdminMutation();
 
-  // Mock data (UNCHANGED)
-  const administrators = [
-    {
-      id: 1,
-      name: "Henry Jr.",
-      email: "zen.ahmed@gmail.com",
-      avatar: "/images/avatar.png",
-    },
-    {
-      id: 2,
-      name: "Emily Carter",
-      email: "emily.carter@example.com",
-      avatar: "/images/avatar.png",
-    },
-  ];
+  const {
+    data: adminResponse,
+    isLoading: isAdminsLoading,
+    isError,
+  } = useGetAllAdminQuery({
+    page: 1,
+    limit: 10,
+  });
 
-  // Form state
+  /* ================= MAP API DATA ================= */
+  const administrators =
+    adminResponse?.data?.filterOnlyCustomerList?.map((item: any) => ({
+      id: item.id,
+      name:
+        item.admin?.firstName || item.admin?.lastName
+          ? `${item.admin?.firstName ?? ""} ${item.admin?.lastName ?? ""}`.trim()
+          : item.username,
+      email: item.email,
+      avatar: "/images/avatar.png",
+      raw: item,
+    })) || [];
+
+  /* ================= FORM STATE ================= */
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -62,66 +74,69 @@ export default function AdministratorSection() {
     });
   };
 
-  // ✅ CREATE ADMIN API LOGIC
-  const handleAssign = async () => {
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.address ||
-      !formData.password ||
-      formData.password !== formData.confirmPassword
-    ) {
-      Swal.fire(
-        "Error",
-        "Please fill all required fields correctly",
-        "error"
-      );
-      return;
-    }
+  /* ================= CREATE ADMIN ================= */
+ const handleAssign = async () => {
+  if (
+    !formData.name ||
+    !formData.email ||
+    !formData.phoneNumber ||
+    !formData.password ||
+    formData.password.length < 6 ||
+    formData.password !== formData.confirmPassword
+  ) {
+    Swal.fire(
+      "Error",
+      "Please fill all required fields correctly",
+      "error"
+    );
+    return;
+  }
 
-    const [firstName, ...rest] = formData.name.trim().split(" ");
-    const lastName = rest.join(" ");
+  const [firstName, ...rest] = formData.name.trim().split(" ");
+  const lastName = rest.join(" ");
 
-    const payload = {
-      username: formData.email.split("@")[0],
-      email: formData.email,
-      contactNo: formData.phoneNumber || null,
-      password: formData.password,
-      lang: "ENG",
-      description: "Administrator user",
-      admin: {
-        firstName: firstName || "",
-        lastName: lastName || "",
-      },
-    };
-
-    try {
-      await createAdmin(payload).unwrap();
-
-      Swal.fire(
-        "Success",
-        "Administrator assigned successfully",
-        "success"
-      );
-
-      setIsAssignModalOpen(false);
-      setFormData({
-        name: "",
-        email: "",
-        phoneNumber: "",
-        address: "",
-        password: "",
-        confirmPassword: "",
-      });
-    } catch (error: any) {
-      Swal.fire(
-        "Error",
-        error?.data?.message || "Failed to assign administrator",
-        "error"
-      );
-    }
+  const payload = {
+    username: formData.email.split("@")[0],
+    email: formData.email,              // ✅ REQUIRED
+    contactNo: formData.phoneNumber,    // ✅ REQUIRED (NOT NULL)
+    password: formData.password,        // ✅ REQUIRED (>=6)
+    lang: "ENG",
+    description: "Administrator user",
+    admin: {
+      firstName: firstName || "",
+      lastName: lastName || "",
+    },
   };
 
+  try {
+    await createAdmin({ body:payload}).unwrap();
+
+    Swal.fire(
+      "Success",
+      "Administrator assigned successfully",
+      "success"
+    );
+
+    setIsAssignModalOpen(false);
+    setFormData({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      password: "",
+      confirmPassword: "",
+    });
+  } catch (error: any) {
+    Swal.fire(
+      "Error",
+      error?.data?.message || "Failed to assign administrator",
+      "error"
+    );
+  }
+};
+
+
+  /* ================= MODALS ================= */
   const handleDetailsClick = (admin: any) => {
     setSelectedAdmin(admin);
     setIsProfileModalOpen(true);
@@ -150,6 +165,7 @@ export default function AdministratorSection() {
     });
   };
 
+  /* ================= RENDER ================= */
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       {/* Header */}
@@ -166,47 +182,57 @@ export default function AdministratorSection() {
       </div>
 
       {/* Admin Cards */}
-      <div className="flex flex-col gap-4">
-        {administrators.map((admin) => (
-          <div
-            key={admin.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg gap-4"
-          >
-            <div className="flex items-center gap-3">
-              <Image
-                src={admin.avatar}
-                alt={admin.name}
-                width={48}
-                height={48}
-                className="rounded-full"
-              />
-              <div>
-                <h4 className="font-medium text-gray-900">
-                  {admin.name}
-                </h4>
-                <p className="text-sm text-gray-500">
-                  {admin.email}
-                </p>
+      {isAdminsLoading ? (
+        <p className="text-sm text-gray-500">
+          Loading administrators...
+        </p>
+      ) : isError ? (
+        <p className="text-sm text-red-500">
+          Failed to load administrators
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {administrators.map((admin: any) => (
+            <div
+              key={admin.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <Image
+                  src={admin.avatar}
+                  alt={admin.name}
+                  width={48}
+                  height={48}
+                  className="rounded-full"
+                />
+                <div>
+                  <h4 className="font-medium text-gray-900">
+                    {admin.name}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {admin.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDetailsClick(admin)}
+                  className="px-4 py-2 text-sm border rounded-md"
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => handleRemoveClick(admin)}
+                  className="px-4 py-2 text-sm border rounded-md"
+                >
+                  Remove
+                </button>
               </div>
             </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleDetailsClick(admin)}
-                className="px-4 py-2 text-sm border rounded-md"
-              >
-                Details
-              </button>
-              <button
-                onClick={() => handleRemoveClick(admin)}
-                className="px-4 py-2 text-sm border rounded-md"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Assign Administrator Modal */}
       {isAssignModalOpen && (
@@ -258,7 +284,7 @@ export default function AdministratorSection() {
         </div>
       )}
 
-      {/* Profile Modal (UNCHANGED) */}
+      {/* Profile Modal */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
