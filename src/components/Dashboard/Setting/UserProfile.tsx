@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -9,24 +10,26 @@ import {
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useGetmeQuery } from "@/redux/service/auth/authApi";
+import { useUpdateProfileMutation } from "@/redux/service/userprofile/profile";
+import Swal from "sweetalert2";
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading } = useGetmeQuery({});
+  // ✅ Remove Redux user ID — rely on API data
+  const { data, isLoading, refetch } = useGetmeQuery({});
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
   const user = data?.data;
   const admin = data?.data?.admin;
 
-  const fullName = admin
-    ? `${admin.firstName} ${admin.lastName}`
-    : "";
-
+  const fullName = admin ? `${admin.firstName} ${admin.lastName}` : "";
   const email = user?.email ?? "";
   const contact = user?.contactNo ?? "";
   const address = admin?.location ?? user?.location ?? "";
-  const introduction =
-    admin?.description ?? user?.description ?? "";
+  const introduction = admin?.description ?? user?.description ?? "";
+  const username = user?.username ?? "";
+  const gender = user?.gender ?? "MALE";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -34,6 +37,9 @@ export default function UserProfile() {
     contact: "",
     address: "",
     introduction: "",
+    username: "",
+    gender: "MALE" as "MALE" | "FEMALE" | "OTHERS",
+    profileImage: null as File | null,
   });
 
   useEffect(() => {
@@ -43,27 +49,99 @@ export default function UserProfile() {
         email: user.email ?? "",
         contact: user.contactNo ?? "",
         address: admin.location ?? user.location ?? "",
-        introduction:
-          admin.description ?? user.description ?? "",
+        introduction: admin.description ?? user.description ?? "",
+        username: user.username ?? "",
+        gender: (user.gender as "MALE" | "FEMALE" | "OTHERS") || "MALE",
+        profileImage: null,
       });
     }
   }, [user, admin]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: e.target.files![0],
+      }));
+    }
+  };
+
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    console.log("Saving profile:", formData);
-    setIsEditing(false);
+  // ✅ Updated: no parameter — get userId from API data
+  const handleSave = async () => {
+    const userId = user?.id;
+    if (!userId) {
+      Swal.fire("Error", "User ID not found. Please reload the page.", "error");
+      return;
+    }
+
+    const nameParts = formData.name.trim().split(/\s+/).filter(Boolean);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : firstName;
+
+    const data = {
+      username: formData.username,
+      email: formData.email,
+      description: formData.introduction || null,
+      gender: formData.gender,
+      location: formData.address || null,
+      contactNo: formData.contact || null,
+      customer: {
+        firstName,
+        lastName,
+        address: formData.address || null,
+        description: formData.introduction || null,
+        gymGoal: null,
+        preferredExperience: null,
+      },
+    };
+
+    const formPayload = new FormData();
+    formPayload.append("data", JSON.stringify(data));
+    if (formData.profileImage) {
+      formPayload.append("profileImage", formData.profileImage);
+    }
+
+    try {
+      const res = await updateProfile({
+        id: userId,
+        formData: formPayload,
+      }).unwrap();
+
+      if (res.success) {
+        Swal.fire("Success", res.message || "Profile updated successfully", "success");
+        setIsEditing(false);
+        refetch(); // Refresh profile picture and data
+      } else {
+        Swal.fire("Error", res.message || "Failed to update profile", "error");
+      }
+    } catch (err: any) {
+      console.error("Update error:", err);
+      Swal.fire(
+        "Error",
+        err?.data?.message || "Something went wrong while updating your profile.",
+        "error"
+      );
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 md:p-12 shadow-sm relative">
@@ -105,13 +183,13 @@ export default function UserProfile() {
         <div className="flex-1 flex flex-col md:flex-row gap-6 w-full">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              {isLoading ? "Loading..." : fullName}
+              {fullName}
             </h2>
             <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
               Introduction:
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              {isLoading ? "Loading..." : introduction}
+              {introduction}
             </p>
           </div>
 
@@ -120,43 +198,31 @@ export default function UserProfile() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <PhoneIcon className="w-4 h-4 text-black" />
-                <span className="text-sm text-black font-semibold">
-                  Contact
-                </span>
+                <span className="text-sm text-black font-semibold">Contact</span>
               </div>
-              <span className="text-sm text-gray-600">
-                {contact}
-              </span>
+              <span className="text-sm text-gray-600">{contact}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MailIcon className="w-4 h-4 text-black" />
-                <span className="text-sm text-black font-semibold">
-                  Email
-                </span>
+                <span className="text-sm text-black font-semibold">Email</span>
               </div>
-              <span className="text-sm text-gray-600">
-                {email}
-              </span>
+              <span className="text-sm text-gray-600">{email}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPinIcon className="w-4 h-4 text-black" />
-                <span className="text-sm text-gray-700 font-semibold">
-                  Address
-                </span>
+                <span className="text-sm text-black font-semibold">Address</span>
               </div>
-              <span className="text-sm text-gray-600">
-                {address}
-              </span>
+              <span className="text-sm text-gray-600">{address}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Edit Modal (UNCHANGED DESIGN) */}
+      {/* Edit Modal */}
       {isEditing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-[#FAFBFB] rounded-2xl shadow-xl max-w-4xl w-full p-4 py-9 relative">
@@ -164,23 +230,54 @@ export default function UserProfile() {
               Edit Profile
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-              {["name", "contact", "email", "address"].map((field) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {["name", "email", "contact", "address", "username"].map((field) => (
                 <div key={field}>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {field.charAt(0).toUpperCase() + field.slice(1)}
                   </label>
                   <input
                     type="text"
                     name={field}
-                    value={(formData as any)[field]}
+                    value={formData[field as keyof typeof formData] as string}
                     onChange={handleInputChange}
                     className="w-full rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D]"
                   />
                 </div>
               ))}
+
+              {/* Gender Select */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border border-[#7F7F84]/50 bg-[#FAFBFB] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A7997D]"
+                >
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
             </div>
 
+            {/* Profile Image */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Profile Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#A7997D] file:text-white hover:file:bg-[#94856a]"
+              />
+            </div>
+
+            {/* Introduction */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Introduction
@@ -197,15 +294,17 @@ export default function UserProfile() {
             <div className="flex justify-center space-x-8">
               <button
                 onClick={handleCancel}
+                disabled={isUpdating}
                 className="px-4 py-2 border rounded-md text-sm"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSave}
+                onClick={handleSave} // ✅ No argument passed
+                disabled={isUpdating}
                 className="px-4 py-2 bg-[#A7997D] text-white rounded-md"
               >
-                Change
+                {isUpdating ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>

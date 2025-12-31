@@ -26,36 +26,40 @@ const LoginForm = () => {
     e.preventDefault();
     setError("");
 
-    // Validation
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
     }
 
     try {
-      const res = await loginUser({
-        email,
-        password,
-      }).unwrap();
+      const res = await loginUser({ email, password }).unwrap();
 
       if (res?.success) {
-        const { token, refreshToken } = res.data;
-        dispatch(setUser({ user: null, token, refreshToken }));
+        const user = res.data; // Full user object
+        const token = user.token; // Extract token
+        // Note: your API doesn't return refreshToken in login — so we use token for both or handle accordingly
+
+        // ✅ Dispatch FULL user object
+        dispatch(
+          setUser({
+            user,
+            token,
+            refreshToken: token, // or null if not provided
+          })
+        );
+
         Cookies.set("token", token);
-        if (res.data.role === "SUPER_ADMIN") {
+
+        if (user.role === "SUPER_ADMIN") {
           router.push("/dashboard");
-          toast.success(res.message)
-        } else if (res.data.role === "USER") {
+        } else {
           router.push("/home");
-          toast.success(res.message)
         }
+
+        toast.success(res.message);
       }
-
-      // Redirect to dashboard or home page
-
     } catch (err: any) {
       toast.error(err?.data?.message || "Login failed. Please try again.");
-      console.error("Login error:", err);
     }
   };
 
@@ -70,9 +74,7 @@ const LoginForm = () => {
 
         {/* Heading */}
         <div className="mb-6">
-          <h2 className="text-xl md:text-2xl font-normal mb-2">
-            Welcome Back
-          </h2>
+          <h2 className="text-xl md:text-2xl font-normal mb-2">Welcome Back</h2>
           <p className="text-sm md:text-base text-[#6B7280]">
             Please sign in to access your dashboard.
           </p>
@@ -143,7 +145,9 @@ const LoginForm = () => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 border border-gray-300 rounded accent-gray-400 cursor-pointer"
               />
-              <span className="ml-2 text-gray-600 md:text-base">Remember Me</span>
+              <span className="ml-2 text-gray-600 md:text-base">
+                Remember Me
+              </span>
             </label>
             <Link
               href="/forget-password"
@@ -164,7 +168,7 @@ const LoginForm = () => {
         </form>
 
         {/* Sign Up Link */}
-          {/* <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
+        {/* <div className="text-center mt-6 text-xs md:text-base hover:text-gray-700">
             Don&apos;t have an account?{" "}
             <Link
               href="/register"

@@ -2,15 +2,20 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type UserType = {
   id: string;
+  username: string;
   email: string;
-  exp: number;
-  iat: number;
+  description: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER";
+  location: string | null;
+  contactNo: string | null;
+  avatars: string | null;
+  status: string;
   role: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  accessToken: string;
-  username:string;
+  lang: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Note: token is NOT part of user — it's separate
 };
 interface AuthSate {
   user: UserType | null;
