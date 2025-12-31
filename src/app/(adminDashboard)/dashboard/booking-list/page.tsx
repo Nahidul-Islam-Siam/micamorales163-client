@@ -1,51 +1,96 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Card, Table, Dropdown, Button, Modal, Typography } from "antd";
+import { Card, Table, Dropdown, Button, Modal, Typography, Tag, Spin } from "antd";
 import { EllipsisOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import AddAppointmentModal from "@/components/Dashboard/MyBooking/AddAppointmentModal";
 import Swal from "sweetalert2";
+import { useDeleteBookingMutation, useGetAllBookingsQuery } from "@/redux/service/booking/bookingApi";
 
 const { Text } = Typography;
 
-/** Interface for booking data */
+/** Interface for booking data - updated to match real API */
 interface BookingRecord {
-  key: number;
-  id: number;
+  key: string;
+  id: string;
   bookedBy: string;
-  email: string;
+  email: string | null;
   className: string;
   dateTime: string;
-  payment: "Card" | "Bank" | "Credit";
+  payment: "Card" | "Bank" | "Credit" | "Not Paid";
+  status: string;
+  phoneNumber: string;
+  classType: string;
 }
-
-// Mock data
-const bookingData: BookingRecord[] = Array.from({ length: 12 }, (_, i) => ({
-  key: i,
-  id: 12345 + i,
-  bookedBy: "Wilson Leon",
-  email: "client009@gmail.com",
-  className: "Signature Experiences",
-  dateTime: "12/12/25 - 6:00pm",
-  payment: ["Card", "Bank", "Credit"][i % 3] as BookingRecord["payment"],
-}));
 
 export default function BookingListTable() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(
-    null
-  );
+  const [selectedBooking, setSelectedBooking] = useState<BookingRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+
+  // Use real API data instead of mock data
+  const { data: bookingResponse, isLoading, error } = useGetAllBookingsQuery({ 
+    page: currentPage, 
+    limit: 10, 
+    searchTerm: "" 
+  });
+
+  const [deleteBooking] = useDeleteBookingMutation();
+
+  // Transform real API data to table format
+  const bookingData = useMemo<BookingRecord[]>(() => {
+    if (!bookingResponse?.data?.result) return [];
+    
+    return bookingResponse.data.result.map((booking: any) => {
+      // Determine payment method
+      let paymentMethod: "Card" | "Bank" | "Credit" | "Not Paid" = "Not Paid";
+      if (booking.payment) {
+        // You can enhance this logic based on your payment system
+        paymentMethod = "Card"; // Default to Card when payment exists
+      }
+      
+      // Format date and time from classTimeSlot
+      const startTime = booking.classTimeSlot?.startTime 
+        ? new Date(booking.classTimeSlot.startTime).toLocaleString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: '2-digit',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })
+        : "N/A";
+      
+      // Get customer name
+      const customerName = booking.name || 
+        `${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim() || 
+        "Unknown";
+      
+      return {
+        key: booking.id,
+        id: booking.id,
+        bookedBy: customerName,
+        email: booking.email || booking.customer?.user?.email || "N/A",
+        className: booking.classOffering?.name || "N/A",
+        dateTime: startTime,
+        payment: paymentMethod,
+        status: booking.status,
+        phoneNumber: booking.phoneNumber || "N/A",
+        classType: booking.classOffering?.type || "N/A"
+      };
+    });
+  }, [bookingResponse]);
 
   const showBookingDetails = (record: BookingRecord) => {
     setSelectedBooking(record);
     setIsModalVisible(true);
   };
 
-  const handleDelete = (record: any) => {
-    Swal.fire({
+const handleDelete = async (record: { id: string }) => {
+  try {
+    const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -54,24 +99,36 @@ export default function BookingListTable() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // ✅ Perform delete logic here
-        // e.g., call your API: deleteService(record.id)
-        console.log("Deleting record:", record.id);
-
-        // Optionally show success message
-        Swal.fire("Deleted!", "The record has been deleted.", "success");
-      }
     });
-  };
+
+    if (!result.isConfirmed) return;
+
+    const res = await deleteBooking(record.id).unwrap();
+
+    Swal.fire({
+      icon: "success",
+      title: "Deleted!",
+      text: res.message || "The booking has been deleted.",
+    });
+  } catch (error: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Deletion Failed",
+      text: error?.data?.message || "Something went wrong.",
+    });
+  }
+};
+
 
   const bookingColumns = [
     {
       title: "Booking ID",
       dataIndex: "id",
       key: "id",
-      width: 120,
+      width: 140,
+      render: (text: string) => (
+        <span className="text-gray-700 text-sm font-mono">{text.substring(0, 8)}</span>
+      ),
     },
     {
       title: "Booked By",
@@ -101,6 +158,20 @@ export default function BookingListTable() {
       width: 160,
     },
     {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      width: 120,
+      render: (status: string) => {
+        let color = "default";
+        if (status === "BOOKED") color = "success";
+        else if (status === "PROCESSING") color = "processing";
+        else if (status === "CANCELLED") color = "error";
+        
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
       title: "Payment",
       dataIndex: "payment",
       key: "payment",
@@ -112,6 +183,9 @@ export default function BookingListTable() {
         if (text === "Credit") {
           bgColor = "#4CAF50";
           textColor = "white";
+        } else if (text === "Not Paid") {
+          bgColor = "#ff4d4f20";
+          textColor = "#ff4d4f";
         }
 
         return (
@@ -144,12 +218,12 @@ export default function BookingListTable() {
                 label: "View Details",
                 onClick: () => showBookingDetails(record),
               },
-              { key: "2", label: "Edit" },
+              // { key: "2", label: "Edit" },
               {
                 key: "3",
                 label: "Delete",
                 onClick: (e) => {
-                  e.domEvent.stopPropagation(); // Prevent row click if in table
+                  e.domEvent.stopPropagation();
                   handleDelete(record);
                 },
               },
@@ -162,6 +236,24 @@ export default function BookingListTable() {
       ),
     },
   ];
+
+  if (isLoading) {
+    return (
+      <Card className="custom-recent-bookings-card" bodyStyle={{ padding: '40px' }}>
+        <div className="flex justify-center">
+          <Spin size="large" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="custom-recent-bookings-card" bodyStyle={{ padding: '40px' }}>
+        <div className="text-center text-red-500">Failed to load bookings.</div>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -195,7 +287,7 @@ export default function BookingListTable() {
             pagination={{
               current: currentPage,
               pageSize: 10,
-              total: bookingData.length,
+              total: bookingResponse?.data?.meta?.total || 0,
               onChange: setCurrentPage,
               showSizeChanger: false,
               position: ["bottomRight"],
@@ -203,10 +295,11 @@ export default function BookingListTable() {
             }}
             scroll={{ x: 800 }}
             className="mt-5"
+            locale={{ emptyText: "No bookings found" }}
           />
         </div>
 
-        {/* --- Global Styles Copied from RecentBookingsTable --- */}
+        {/* --- Global Styles --- */}
         <style jsx global>{`
           .custom-recent-bookings-card .ant-card-head {
             display: flex !important;
@@ -298,7 +391,7 @@ export default function BookingListTable() {
       >
         {selectedBooking && (
           <div className="space-y-3 p-5 text-sm">
-            <div className="flex justify-between ">
+            <div className="flex justify-between">
               <Text strong>Booking ID</Text>
               <Text>{selectedBooking.id}</Text>
             </div>
@@ -311,12 +404,26 @@ export default function BookingListTable() {
               <Text>{selectedBooking.email}</Text>
             </div>
             <div className="flex justify-between">
-              <Text strong>Last Class Name</Text>
+              <Text strong>Phone Number</Text>
+              <Text>{selectedBooking.phoneNumber}</Text>
+            </div>
+            <div className="flex justify-between">
+              <Text strong>Class Name</Text>
               <Text>{selectedBooking.className}</Text>
+            </div>
+            <div className="flex justify-between">
+              <Text strong>Class Type</Text>
+              <Text>{selectedBooking.classType}</Text>
             </div>
             <div className="flex justify-between">
               <Text strong>Date & Time</Text>
               <Text>{selectedBooking.dateTime}</Text>
+            </div>
+            <div className="flex justify-between">
+              <Text strong>Status</Text>
+              <Tag color={selectedBooking.status === "BOOKED" ? "success" : "processing"}>
+                {selectedBooking.status}
+              </Tag>
             </div>
             <div className="flex justify-between items-center">
               <Text strong>Payment</Text>
@@ -325,9 +432,15 @@ export default function BookingListTable() {
                   backgroundColor:
                     selectedBooking.payment === "Credit"
                       ? "#4CAF50"
+                      : selectedBooking.payment === "Not Paid"
+                      ? "#ff4d4f20"
                       : "#A7997D40",
                   color:
-                    selectedBooking.payment === "Credit" ? "white" : "#4E4E4A",
+                    selectedBooking.payment === "Credit"
+                      ? "white"
+                      : selectedBooking.payment === "Not Paid"
+                      ? "#ff4d4f"
+                      : "#4E4E4A",
                   padding: "4px 8px",
                   borderRadius: "20px",
                   fontSize: "11px",
