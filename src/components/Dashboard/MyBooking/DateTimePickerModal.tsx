@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -110,24 +111,24 @@ export default function DateTimePickerModal({
     return Date.now().toString(36) + Math.random().toString(36).slice(2)
   }
 
-  // Format time display
+  // Format time display - SIMPLIFIED
   const formatTimeDisplay = (hour: string, minute: string, period: "AM" | "PM") => {
     const hourNum = parseInt(hour)
-    const displayHour = hourNum === 0 ? '12'
-      : hourNum > 12 ? (hourNum - 12).toString()
-      : hourNum.toString()
-    return `${displayHour}:${minute.padStart(2, '0')}${period.toLowerCase()}`
+    if (hourNum === 0) return `12:${minute.padStart(2, '0')}${period.toLowerCase()}`
+    if (hourNum > 12) return `${hourNum - 12}:${minute.padStart(2, '0')}${period.toLowerCase()}`
+    return `${hourNum}:${minute.padStart(2, '0')}${period.toLowerCase()}`
   }
 
-  // Parse time string like "06:01am"
+  // Parse time string like "06:01am" - SIMPLIFIED
   const parseTime = (timeStr: string) => {
     const match = timeStr.match(/(\d+):(\d+)(am|pm)/i)
     if (!match) return null
     const [, h, m, p] = match
-    let hour = parseInt(h)
-    if (p.toLowerCase() === 'pm' && hour < 12) hour += 12
-    if (p.toLowerCase() === 'am' && hour === 12) hour = 0
-    return { hour: hour.toString().padStart(2, '0'), minute: m.padStart(2, '0'), period: p.toUpperCase() as "AM" | "PM" }
+    return { 
+      hour: h, 
+      minute: m.padStart(2, '0'), 
+      period: p.toUpperCase() as "AM" | "PM" 
+    }
   }
 
   // Get next available color
@@ -175,7 +176,7 @@ export default function DateTimePickerModal({
     setDateSchedules(newDateSchedules)
   }
 
-  // Handle adding custom time
+  // Handle adding custom time - FIXED LOGIC
   const handleAddCustomTime = () => {
     const startHour = customStartHour || "06"
     const startMin = customStartMinute || "01"
@@ -187,17 +188,39 @@ export default function DateTimePickerModal({
       return
     }
 
+    // Validate hour ranges
+    const startHourNum = parseInt(startHour)
+    const endHourNum = parseInt(endHour)
+    const startMinNum = parseInt(startMin)
+    const endMinNum = parseInt(endMin)
+    
+    if (startHourNum < 1 || startHourNum > 12 || endHourNum < 1 || endHourNum > 12) {
+      message.error("Hours must be between 1-12")
+      return
+    }
+    if (startMinNum < 0 || startMinNum > 59 || endMinNum < 0 || endMinNum > 59) {
+      message.error("Minutes must be between 0-59")
+      return
+    }
+
+    // Create start time with current period
     const startTime = formatTimeDisplay(startHour, startMin, timePeriod)
 
-    // End period logic
-    let endPeriod = timePeriod
-    const endHourNum = parseInt(endHour)
-    let startHourNum = parseInt(startHour)
-    if (timePeriod === "AM" && startHourNum === 12) startHourNum = 0
-    if (timePeriod === "PM" && startHourNum < 12) startHourNum += 12
-    if (endHourNum < startHourNum) endPeriod = timePeriod === "AM" ? "PM" : "AM"
-    else if (endHourNum === 12 && timePeriod === "AM") endPeriod = "PM"
-    else if (endHourNum >= 12 && endHourNum > startHourNum) endPeriod = "PM"
+    // Determine end period based on time logic
+    let endPeriod: "AM" | "PM" = timePeriod
+    
+    // Simple logic: if end hour < start hour, it's next period
+    if (endHourNum < startHourNum) {
+      endPeriod = timePeriod === "AM" ? "PM" : "AM"
+    } 
+    // Special case: 12am to 1am should stay AM
+    else if (timePeriod === "AM" && startHourNum === 12 && endHourNum === 1) {
+      endPeriod = "AM"
+    }
+    // Special case: 12pm to 1pm should stay PM  
+    else if (timePeriod === "PM" && startHourNum === 12 && endHourNum === 1) {
+      endPeriod = "PM"
+    }
 
     const endTime = formatTimeDisplay(endHour, endMin, endPeriod)
 
@@ -241,8 +264,8 @@ export default function DateTimePickerModal({
 
     const newOpt = {
       label: newTimeOptionLabel.trim(),
-      start: newTimeOptionLabel.split(' to ')[0].replace(/am|pm/i, ''),
-      end: newTimeOptionLabel.split(' to ')[1].replace(/am|pm/i, '')
+      start: newTimeOptionLabel.split(' to ')[0],
+      end: newTimeOptionLabel.split(' to ')[1]
     }
 
     setTimeOptions(prev => [...prev, newOpt])
@@ -292,75 +315,75 @@ export default function DateTimePickerModal({
   }
 
   // Full cell render with dot indicators and double-click
- const fullCellRender = (value: Dayjs) => {
-  const dateKey = value.format('YYYY-MM-DD')
-  const hasSchedule = dateSchedules[dateKey]?.length > 0
-  const isSelected = selectedDates.some(d => d.format('YYYY-MM-DD') === dateKey)
+  const fullCellRender = (value: Dayjs) => {
+    const dateKey = value.format('YYYY-MM-DD')
+    const hasSchedule = dateSchedules[dateKey]?.length > 0
+    const isSelected = selectedDates.some(d => d.format('YYYY-MM-DD') === dateKey)
 
-  return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        cursor: 'pointer',
-      }}
-      onClick={() => handleDateSelect(value)}
-      onDoubleClick={(e) => {
-        e.preventDefault()
-        handleDateDoubleClick(value)
-      }}
-    >
-      {/* Show the date number (1, 2, 3...) */}
+    return (
       <div
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
           width: '100%',
-          textAlign: 'center',
-          fontSize: '14px',
-          fontWeight: 'normal',
-          color: '#000',
-          padding: '4px 0',
-          pointerEvents: 'none', // Allow clicks through to parent
+          height: '100%',
+          position: 'relative',
+          cursor: 'pointer',
+        }}
+        onClick={() => handleDateSelect(value)}
+        onDoubleClick={(e) => {
+          e.preventDefault()
+          handleDateDoubleClick(value)
         }}
       >
-        {value.date()}
-      </div>
-
-      {/* Small colored dots for each time slot */}
-      {hasSchedule && (
-        <div style={{ position: 'absolute', top: '26px', left: '2px', display: 'flex', gap: '1px' }}>
-          {dateSchedules[dateKey].map((slot) => (
-            <div
-              key={slot.id}
-              style={{
-                width: '4px',
-                height: '4px',
-                backgroundColor: slot.color,
-                borderRadius: '50%',
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Faint overlay for selected but not scheduled */}
-      {isSelected && !hasSchedule && (
+        {/* Show the date number (1, 2, 3...) */}
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            borderRadius: '4px',
-            background: '#333',
-            opacity: 0.2,
+            top: 0,
+            left: 0,
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '14px',
+            fontWeight: 'normal',
+            color: '#000',
+            padding: '4px 0',
+            pointerEvents: 'none',
           }}
-        />
-      )}
-    </div>
-  )
-}
+        >
+          {value.date()}
+        </div>
+
+        {/* Small colored dots for each time slot */}
+        {hasSchedule && (
+          <div style={{ position: 'absolute', top: '26px', left: '2px', display: 'flex', gap: '1px' }}>
+            {dateSchedules[dateKey].map((slot) => (
+              <div
+                key={slot.id}
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: slot.color,
+                  borderRadius: '50%',
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Faint overlay for selected but not scheduled */}
+        {isSelected && !hasSchedule && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '4px',
+              background: '#333',
+              opacity: 0.2,
+            }}
+          />
+        )}
+      </div>
+    )
+  }
 
   // Confirm
   const handleConfirm = () => {

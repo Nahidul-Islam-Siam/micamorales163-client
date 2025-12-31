@@ -1,46 +1,66 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { Form, Input, Button, Select, Upload, InputNumber } from "antd"
-import { UploadOutlined, PlusOutlined, CalendarOutlined } from "@ant-design/icons"
+import { UploadOutlined, PlusOutlined, CalendarOutlined, CloseOutlined } from "@ant-design/icons"
 import { useState } from "react"
-// import DateTimePickerModal from "./date-time-picker-modal"
-// import type { Dayjs } from "dayjs"
 import DateTimePickerModal from "./DateTimePickerModal"
+import dayjs from "dayjs"
 
-interface TimeSlotData {
-  id: number
-  date: string
-  startTime: string
-  endTime: string
+// Define interface for schedule data
+interface Schedule {
+  id: string;
+  date: string;        // YYYY-MM-DD
+  startTime: string;   // e.g., "07:00am"
+  endTime: string;     // e.g., "08:00am"
 }
 
 export default function MembershipClassForm() {
   const [form] = Form.useForm()
-  const [timeSlots, setTimeSlots] = useState<TimeSlotData[]>([])
+  const [schedules, setSchedules] = useState<Schedule[]>([])
   const [modalVisible, setModalVisible] = useState(false)
 
-  const handleAddTimeSlot = () => {
+  const handleAddSchedule = () => {
     setModalVisible(true)
   }
 
-  const handleModalConfirm = (schedules: any[]) => {
-    const newSlots: TimeSlotData[] = schedules.map((schedule) => ({
-      id: Date.now() + Math.random(),
-      date: typeof schedule.date === 'string' ? schedule.date : schedule.date.format("YYYY-MM-DD"),
-      startTime: schedule.startTime,
-      endTime: schedule.endTime,
-    }))
-    setTimeSlots([...timeSlots, ...newSlots])
+  // ✅ CRITICAL FIX: Properly extract time slots from modal data
+  const handleModalConfirm = (selectedSchedules: any[]) => {
+    const newSchedules: Schedule[] = [];
+    
+    selectedSchedules.forEach((schedule: any) => {
+      const dateStr = dayjs(schedule.date).format("YYYY-MM-DD");
+      
+      // Extract EACH time slot from schedule.slots array
+      if (Array.isArray(schedule.slots)) {
+        schedule.slots.forEach((slot: any) => {
+          newSchedules.push({
+            id: Date.now().toString() + Math.random().toString(36).slice(2),
+            date: dateStr,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          });
+        });
+      }
+    });
+    
+    setSchedules(prev => [...prev, ...newSchedules]);
+    setModalVisible(false);
   }
 
-  const handleRemoveTimeSlot = (id: number) => {
-    setTimeSlots(timeSlots.filter((slot) => slot.id !== id))
+  const handleRemoveSchedule = (id: string) => {
+    setSchedules(schedules.filter(s => s.id !== id));
+  }
+
+  const formatDate = (dateStr: string) => {
+    return dayjs(dateStr).format("MM/DD/YYYY")
   }
 
   const handlePublish = () => {
     form.validateFields().then((values) => {
-      console.log("Membership Class submitted:", values)
+      console.log("Selected Schedules:", schedules)
+      // Your API call here
     })
   }
 
@@ -54,7 +74,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Class Name"
               name="className"
-              rules={[{  message: "Please enter class name" }]}
+              rules={[{ required: true, message: "Please enter class name" }]}
             >
               <Input
                 placeholder="Enter class name"
@@ -65,7 +85,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Short Description"
               name="shortDescription"
-              rules={[{  message: "Please enter short description" }]}
+              rules={[{ required: true, message: "Please enter short description" }]}
             >
               <Input.TextArea
                 placeholder="Enter class short description"
@@ -77,7 +97,7 @@ export default function MembershipClassForm() {
             <Form.Item
               label="Instructor Name"
               name="instructorName"
-              rules={[{  message: "Please enter instructor name" }]}
+              rules={[{ required: true, message: "Please enter instructor name" }]}
             >
               <Input
                 placeholder="Enter instructor name"
@@ -140,51 +160,48 @@ export default function MembershipClassForm() {
             </Form.Item>
           </div>
         </div>
-<div className="space-y-4">
-  {/* Always show the "Add Time Slot" trigger */}
-  <div
-    onClick={handleAddTimeSlot}
-    className="flex items-center justify-between px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#A7997D] transition-colors"
-  >
-    <div className="flex items-center text-gray-500">
-      <CalendarOutlined className="text-lg mr-2" />
-      <span>Select Date & Time</span>
-    </div>
-    <PlusOutlined className="text-[#A7997D]" />
-  </div>
 
-  {/* Display existing time slots as pills only if any exist */}
-  {timeSlots.length > 0 && (
-    <div className="flex flex-wrap gap-2 py-1 overflow-x-auto max-h-20 scrollbar-hide">
-      {timeSlots.map((slot) => (
-        <div
-          key={slot.id}
-          className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full border border-gray-200 text-sm font-medium text-gray-900 whitespace-nowrap"
-        >
-          <CalendarOutlined className="text-xs text-gray-500" />
-          <span>{slot.date}</span>
-          <span className="text-gray-600">•</span>
-          <span>{slot.startTime} to {slot.endTime}</span>
-          <Button
-            type="text"
-            danger
-            size="small"
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-  <path d="M24 6V30" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M34 16L24 6L14 16" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30" stroke="#A7997D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleRemoveTimeSlot(slot.id)
-            }}
-            className="ml-1 p-0 h-auto"
-          />
+        {/* Date & Time Selection */}
+        <div className="space-y-4">
+          <div
+            onClick={handleAddSchedule}
+            className="flex items-center justify-between px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#A7997D] transition-colors"
+          >
+            <div className="flex items-center text-gray-500">
+              <CalendarOutlined className="text-lg mr-2" />
+              <span>Select Date & Time</span>
+            </div>
+            <PlusOutlined className="text-[#A7997D]" />
+          </div>
+
+          {/* Display schedules as pills */}
+          {schedules.length > 0 && (
+            <div className="flex flex-wrap gap-2 py-1 overflow-x-auto max-h-20 scrollbar-hide">
+              {schedules.map((schedule) => (
+                <div
+                  key={schedule.id}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full border border-gray-200 text-sm font-medium text-gray-900 whitespace-nowrap"
+                >
+                  <CalendarOutlined className="text-xs text-gray-500" />
+                  <span>{formatDate(schedule.date)}</span>
+                  <span className="text-gray-600">•</span>
+                  <span>{schedule.startTime} to {schedule.endTime}</span>
+                  <Button
+                    type="text"
+                    danger
+                    size="small"
+                    icon={<CloseOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveSchedule(schedule.id)
+                    }}
+                    className="ml-1 p-0 h-auto"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  )}
-</div>
 
         {/* Images Section */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
