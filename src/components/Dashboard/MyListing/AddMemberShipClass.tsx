@@ -30,28 +30,28 @@ export default function AddProductForm() {
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M12 22V12"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M3.29004 7L12 12L20.71 7"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M7.5 4.27002L16.5 9.42002"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
         </svg>
       ),
@@ -72,28 +72,28 @@ export default function AddProductForm() {
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M12 22V12"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M3.29004 7L12 12L20.71 7"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M7.5 4.27002L16.5 9.42002"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
         </svg>
       ),
@@ -114,28 +114,28 @@ export default function AddProductForm() {
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M12 22V12"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M3.29004 7L12 12L20.71 7"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
           <path
             d="M7.5 4.27002L16.5 9.42002"
             stroke="#F3F3F3"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
           />
         </svg>
       ),

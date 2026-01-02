@@ -304,14 +304,14 @@ const AddAppointmentModal = ({
 
   // 📋 EXACT PAYLOAD STRUCTURE YOUR BACKEND REQUIRES
   const bookingPayload = {
-    adminBooking: {
+  
       classOfferingId: selectedTimeSlot.classId,
       classScheduleId: classScheduleId,
       classTimeSlotId: classTimeSlotId,
       name: formData.patientName,
       phoneNumber: formData.contact,
       email: formData.email
-    }
+    
   };
 
   // ✅ SEND TO BACKEND with Swal alerts using res.message

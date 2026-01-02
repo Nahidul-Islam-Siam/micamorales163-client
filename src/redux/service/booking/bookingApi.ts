@@ -118,6 +118,8 @@ const classBookingApi = baseApi.injectEndpoints({
         method: "GET",
         params: { searchTerm, page, limit },
       }),
+
+      providesTags: ["booking"],
     }),
 
 deleteBooking: builder.mutation<
@@ -128,6 +130,8 @@ deleteBooking: builder.mutation<
     url: `/class-booking/${id}`,
     method: "DELETE",
   }),
+
+  invalidatesTags: ["booking"],
 }),
 
 
@@ -137,6 +141,8 @@ deleteBooking: builder.mutation<
         method: "POST",
         body,
       }),
+
+      invalidatesTags: ["booking"],
     })
   }),
 });

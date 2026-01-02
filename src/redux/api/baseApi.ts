@@ -20,7 +20,7 @@ const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
-  credentials: "include", 
+  credentials: "include",
 });
 
 const baseQueryWithReauth: BaseQueryFn<
@@ -59,7 +59,16 @@ const baseQueryWithReauth: BaseQueryFn<
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["auth", "roofing", "window", "ContactUs","subscriptionModel", "profile"],
+  tagTypes: [
+    "auth",
+    "roofing",
+    "window",
+    "ContactUs",
+    "subscriptionModel",
+    "profile",
+    "booking",
+    "classOffering"
+  ],
   endpoints: () => ({}),
 });
 
