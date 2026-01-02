@@ -17,7 +17,11 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import defaultImage from "@/assets/table/r.png";
 import Swal from "sweetalert2";
-import { useGetClassOfferingsQuery } from "@/redux/service/userprofile/mylisting";
+import {
+  useGetClassOfferingsQuery,
+  useDeleteClassOfferingByIdMutation,
+} from "@/redux/service/userprofile/mylisting";
+import { useRouter } from "next/navigation";
 
 const { Text } = Typography;
 
@@ -39,12 +43,16 @@ interface ListingRecord {
 /** -------- MAIN COMPONENT ---------- **/
 export default function MyListingTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(null);
+  const [selectedListing, setSelectedListing] = useState<ListingRecord | null>(
+    null
+  );
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
-
+  const router = useRouter();
   const { data: listingsData, isLoading, error } = useGetClassOfferingsQuery();
+
+  const [deleteClassOffering] = useDeleteClassOfferingByIdMutation();
 
   // Map real API data to table rows
   const realListingData = useMemo<ListingRecord[]>(() => {
@@ -54,7 +62,7 @@ export default function MyListingTable() {
       // Calculate total space and booked space from schedules
       let totalSpace = 0;
       let totalBooked = 0;
-      
+
       offering.schedules.forEach((schedule: any) => {
         schedule.classTimeSlot.forEach((slot: any) => {
           totalSpace += slot.maxSpace || 0;
@@ -69,7 +77,6 @@ export default function MyListingTable() {
       if (offering.publicationStatus === "PUBLISHED") {
         status = "Publish";
       }
-      // You can add logic for "Upcoming" based on schedule dates if needed
 
       return {
         key: offering.id,
@@ -91,13 +98,15 @@ export default function MyListingTable() {
   const filteredData = useMemo(() => {
     return realListingData.filter((item) => {
       // Filter by type
-      const matchesType = activeFilter === "All" || 
+      const matchesType =
+        activeFilter === "All" ||
         (activeFilter === "Membership" && item.type === "MEMBERSHIP") ||
-        (activeFilter === "Signature Experience" && item.type === "SIGNATURE") ||
+        (activeFilter === "Signature Experience" &&
+          item.type === "SIGNATURE") ||
         (activeFilter === "Event" && item.type === "EVENT");
 
       // Search by class name or instructor
-      const matchesSearch = 
+      const matchesSearch =
         item.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.instructor.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -110,8 +119,8 @@ export default function MyListingTable() {
     setIsModalVisible(true);
   };
 
-  const handleDelete = (record: any): void => {
-    Swal.fire({
+  const handleDelete = async (record: any): Promise<void> => {
+    const confirmed = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -120,12 +129,21 @@ export default function MyListingTable() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        console.log("Deleting record:", record.id);
-        Swal.fire("Deleted!", "The record has been deleted.", "success");
-      }
     });
+
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const result = await deleteClassOffering(record.id).unwrap();
+      Swal.fire(
+        "Success!",
+        result.message || "The record has been deleted.",
+        "success"
+      );
+    } catch (error: any) {
+      console.log(error);
+      Swal.fire("Error!", "Failed to delete the record.", "error");
+    }
   };
 
   /** -------- TABLE COLUMNS ---------- **/
@@ -135,7 +153,7 @@ export default function MyListingTable() {
       dataIndex: "className",
       key: "className",
       width: 200,
-      render: (_text: string, record: ListingRecord) => (
+      render: (_text: string, record: ListingRecord): React.ReactNode => (
         <div className="flex items-center gap-2">
           <Image
             width={50}
@@ -145,7 +163,7 @@ export default function MyListingTable() {
             className="w-12 h-12 rounded object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-        target.src = record.image || defaultImage.src;
+              target.src = record.image || defaultImage.src;
             }}
           />
           <div>
@@ -160,7 +178,7 @@ export default function MyListingTable() {
       dataIndex: "instructor",
       key: "instructor",
       width: 150,
-      render: (text: string) => (
+      render: (text: string): React.ReactNode => (
         <span className="text-gray-700 text-sm">{text}</span>
       ),
     },
@@ -169,7 +187,7 @@ export default function MyListingTable() {
       dataIndex: "space",
       key: "space",
       width: 80,
-      render: (text: number) => (
+      render: (text: number): React.ReactNode => (
         <span className="text-gray-700 text-sm">{text || 0}</span>
       ),
     },
@@ -178,7 +196,7 @@ export default function MyListingTable() {
       dataIndex: "remainingSpace",
       key: "remainingSpace",
       width: 120,
-      render: (text: number) => (
+      render: (text: number): React.ReactNode => (
         <span
           className={`text-sm ${
             text === 0 ? "text-red-500" : "text-green-600"
@@ -193,7 +211,7 @@ export default function MyListingTable() {
       dataIndex: "booked",
       key: "booked",
       width: 80,
-      render: (text: number) => (
+      render: (text: number): React.ReactNode => (
         <span className="text-gray-700 text-sm">{text || 0}</span>
       ),
     },
@@ -202,7 +220,7 @@ export default function MyListingTable() {
       dataIndex: "status",
       key: "status",
       width: 100,
-      render: (status: ListingRecord["status"]) => {
+      render: (status: ListingRecord["status"]): React.ReactNode => {
         const styles = {
           Draft: { bg: "#A7997D40", color: "#4E4E4A", border: "#A7997D" },
           Publish: { bg: "#4CAF5020", color: "#4CAF50", border: "#4CAF50" },
@@ -231,14 +249,30 @@ export default function MyListingTable() {
       title: "Action",
       key: "action",
       width: 80,
-      render: (_: any, record: ListingRecord) => (
+      render: (_: any, record: ListingRecord): React.ReactNode => (
         <Dropdown
           menu={{
             items: [
               {
                 key: "1",
                 label: "Edit",
-                onClick: () => console.log("Edit clicked", record.id),
+                onClick: () => {
+                  let path = "";
+                  switch (record.type) {
+                    case "MEMBERSHIP":
+                      path = `/dashboard/my-listing/edit/membership-listing/${record.id}`;
+                      break;
+                    case "SIGNATURE":
+                      path = `/dashboard/my-listing/edit/signature-listing/${record.id}`;
+                      break;
+                    case "EVENT":
+                      path = `/dashboard/my-listing/edit/event-listing/${record.id}`;
+                      break;
+                    default:
+                      path = `/dashboard/my-listing/edit/membership-listing/${record.id}`;
+                  }
+                  router.push(path);
+                },
               },
               {
                 key: "2",
@@ -263,7 +297,10 @@ export default function MyListingTable() {
 
   if (isLoading) {
     return (
-      <Card className="custom-my-listing-table" bordered={false} bodyStyle={{ padding: "40px" }}>
+      <Card
+        className="custom-my-listing-table"
+        styles={{ body: { padding: "40px" } }}
+      >
         <div className="flex justify-center">
           <Spin size="large" />
         </div>
@@ -273,8 +310,13 @@ export default function MyListingTable() {
 
   if (error) {
     return (
-      <Card className="custom-my-listing-table" bordered={false} bodyStyle={{ padding: "40px" }}>
-        <div className="text-center text-red-500">Failed to load class listings.</div>
+      <Card
+        className="custom-my-listing-table"
+        styles={{ body: { padding: "40px" } }}
+      >
+        <div className="text-center text-red-500">
+          Failed to load class listings.
+        </div>
       </Card>
     );
   }
@@ -284,9 +326,8 @@ export default function MyListingTable() {
       {/* Main Container */}
       <Card
         className="custom-my-listing-table"
-        bordered={false}
         style={{ backgroundColor: "transparent", border: "none" }}
-        bodyStyle={{ padding: 0 }}
+        styles={{ body: { padding: 0 } }}
       >
         {/* Header */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -452,13 +493,15 @@ export default function MyListingTable() {
                 className="w-16 h-16 rounded object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                target.src = defaultImage.src;
+                  target.src = defaultImage.src;
                 }}
               />
               <div>
                 <Text strong>{selectedListing.className}</Text>
                 <div className="text-gray-500">ID: {selectedListing.id}</div>
-                <div className="text-gray-500">Type: {selectedListing.type}</div>
+                <div className="text-gray-500">
+                  Type: {selectedListing.type}
+                </div>
               </div>
             </div>
 
@@ -498,7 +541,7 @@ export default function MyListingTable() {
                       ? "1px solid #FF9800"
                       : "1px solid #A7997D",
                   borderRadius: "16px",
-                  padding: "2px 8px",
+                  padding: "2-2-2",
                   fontSize: "12px",
                 }}
               >
